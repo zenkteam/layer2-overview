@@ -1,35 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { useQuery } from "@apollo/react-hooks";
-import {
-  Body,
-  Button,
-  Note,
-  Image,
-  IconImage,
-  Link,
-  InternalLink,
-  Input,
-  ActionContainer,
-  WarningContainer,
-} from ".";
+import { ethers } from "ethers";
+import _ from "lodash";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
+import { ActionContainer, Body, Button, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
+import { getChannelsForChains, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
 import {
-  getTokenBalance,
-  getQuote,
   displayNumber,
-  getProvider,
+  getProvider, getQuote, getTokenBalance
 } from "../utils";
-import { ethers } from "ethers";
-import {
-  swap,
-  getRouterBalances,
-  getChannelsForChains,
-  verifyRouterCapacityForTransfer,
-} from "../connext";
 import BlinkingValue from "./BlinkingValue";
-import moment from "moment";
-import _ from "lodash";
 
 export const SwapLinkContainer = styled.span`
   margin-right: 1em;
@@ -56,8 +37,8 @@ function Swap({
   const [postTransferFromBalance, setPostTransferFromBalance] = useState(false);
   const [preTransferToBalance, setPreTransferToBalance] = useState(false);
   const [postTransferToBalance, setPostTransferToBalance] = useState(false);
-  const [preTransferBalance, setPreTransferBalance] = useState(false);
-  const [postTransferBalance, postPreTransferBalance] = useState(false);
+  // const [preTransferBalance, setPreTransferBalance] = useState(false);
+  // const [postTransferBalance, postPreTransferBalance] = useState(false);
   const [transferComplete, setTransferComplete] = useState(false);
   const [startTime, setStartTime] = useState(false);
   const [endTime, setEndTime] = useState(false);
@@ -67,11 +48,11 @@ function Swap({
 
   function setLogHandler(msg, option = {}) {
     let obj = { ...option, msg };
-    console.log('***setLogHandler', {msg, option})
+    console.log('***setLogHandler', { msg, option }, obj)
     setLog((_log) => [..._log, [msg, option.tx, option.chainId]]);
   }
 
-  useEffect(() => {
+  useEffect((account, connextNode, fromExchange, fromToken, fromTokenPair, toExchange, toToken, toTokenPair) => {
     if (log.length > 0) {
       getTokenBalance(fromExchange.rpcUrl, fromToken, account).then((b) => {
         setFromTokenBalance(b);
@@ -213,11 +194,11 @@ function Swap({
               <BlinkingValue value={displayNumber(fromTokenPairBalance)} /> $
               {symbol} on {fromExchange.name}
             </li>
-            {preTransferBalance && (
+            {/* {preTransferBalance && (
               <li>
                 In transit: {preTransferBalance} and {postPreTransferBalance}
               </li>
-            )}
+            )} */}
             <li>
               <BlinkingValue value={displayNumber(toTokenBalance)} /> ${symbol}{" "}
               on {toExchange.name}
@@ -288,7 +269,7 @@ function Swap({
                           5
                         )} ${fromSymbol} (${displayNumber(
                           ((quote[3].formatted - quote[0].formatted) / amount) *
-                            100
+                          100
                         )}%)`}
                       />
                     </Note>

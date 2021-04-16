@@ -1,10 +1,8 @@
-import React, { PureComponent } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush, ReferenceLine
-} from 'recharts';
+import React from 'react';
+import { Brush, CartesianGrid, Legend, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
 
-export default function(props) {
-  const {data, xKey, yKeys, brush, axis } = props
+export default function (props) {
+  const { data, xKey, yKeys, brush } = props
   const colors = [
     '#8884d8', '#82ca9d'
   ]
@@ -18,10 +16,10 @@ export default function(props) {
       }}
       syncId="anyId"
     >
-      <Legend verticalAlign="top"/>
+      <Legend verticalAlign="top" />
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey={xKey} tick={{fill: 'white', strokeWidth: 1}} />
-      <YAxis domain={['auto', 'auto']}/>
+      <XAxis dataKey={xKey} tick={{ fill: 'white', strokeWidth: 1 }} />
+      <YAxis domain={['auto', 'auto']} />
       <Tooltip />
       {
         yKeys && yKeys[0] === 'pctDiff' && (
@@ -29,7 +27,7 @@ export default function(props) {
         )
       }
       {yKeys.map((yKey, index) => {
-        return (<Line type="monotone" dataKey={ yKey } stroke={colors[index]} />)
+        return (<Line type="monotone" dataKey={yKey} stroke={colors[index]} />)
       })}
       {brush && (<Brush />)}
     </LineChart>

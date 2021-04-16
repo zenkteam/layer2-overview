@@ -1,39 +1,16 @@
-import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/react-hooks";
-import {
-  Body,
-  Button,
-  Note,
-  Title,
-  Header,
-  Image,
-  IconImage,
-  Link,
-  InternalLink,
-  Input,
-  ActionContainer,
-  WarningContainer,
-} from ".";
+import moment from "moment";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import {
-  getTokenBalance,
-  getQuote,
-  displayNumber,
-  getProvider,
-} from "../utils";
-import { ethers } from "ethers";
-import {
-  swap,
-  getRouterBalances,
-  getChannelsForChains,
-  verifyRouterCapacityForTransfer,
-} from "../connext";
-import BlinkingValue from "./BlinkingValue";
-import Chart from "./Chart";
-import moment from "moment";
-import _ from "lodash";
+  Body,
+  IconImage,
+  InternalLink, Note,
+  Title
+} from ".";
 import { GET_HOUR_DATA } from "../graphql/subgraph";
+import Chart from "./Chart";
 
 export const SwapLinkContainer = styled.span`
   margin-right: 1em;
@@ -62,7 +39,7 @@ function Info({
 }) {
   const { from, to, symbol } = useParams();
 
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
 
   const fromExchange = chainInfos.filter((c) => c.exchangeName === from)[0];
   const toExchange = chainInfos.filter((c) => c.exchangeName === to)[0];
@@ -72,8 +49,7 @@ function Info({
     fromToken,
     fromTokenPair,
     toToken,
-    toTokenPair,
-    number;
+    toTokenPair;
   const fromSymbol = "USDC";
   if (combined.length > 0) {
     fromTokenData = combined.filter((c) => c.symbol === fromSymbol)[0];
@@ -172,11 +148,11 @@ function Info({
             <Note style={{ fontSize: "small", margin: "1em" }}>
               (
                 <InternalLink to={`/exchanges/${to}-${from}/tokeninfo/${symbol}`}>
-                  Switch Direction
+                Switch Direction
                 </InternalLink>
                 |
                 <InternalLink to={`/exchanges/${to}-${from}/token/${symbol}`}>
-                  Swap
+                Swap
                 </InternalLink>
               )
 

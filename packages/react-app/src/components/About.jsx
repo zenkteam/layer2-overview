@@ -1,15 +1,6 @@
 import React from "react";
-import {
-  Note,
-  Body,
-  Button,
-  Header,
-  Image,
-  IconImage,
-  Link,
-  InternalLink,
-} from ".";
 import styled from "styled-components";
+import { Body, Link } from ".";
 export const AboutContainer = styled.p`
   max-width: 80%;
   p {
@@ -54,6 +45,7 @@ export default function About() {
 
         <IFrameContainer>
           <iframe
+            title="Youtube Video"
             width="560"
             height="315"
             src="https://www.youtube.com/embed/FRWpYjUJTyc"

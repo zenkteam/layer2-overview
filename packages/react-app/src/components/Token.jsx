@@ -1,9 +1,7 @@
-import React, { useState } from "react";
-import { useQuery } from "@apollo/react-hooks";
-import { Body, Button, Header, Image, IconImage, Link, InternalLink } from ".";
+import React from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { chain } from "lodash";
+import { Body, IconImage, InternalLink } from ".";
 export const SwapLinkContainer = styled.span`
   margin-right: 1em;
 `;
@@ -51,6 +49,7 @@ function Token({ chainInfos, combined }) {
                   );
                 }
               }
+              return "empty"
             });
           })
         )}
