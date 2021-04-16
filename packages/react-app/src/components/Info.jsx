@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import {
-  Body,
+  Content,
   IconImage,
   InternalLink, Note,
   Title
@@ -133,7 +133,7 @@ function Info({
   console.log("***his", { historyData, num });
   return (
     <>
-      <Body>
+      <Content>
         <Title>
           <IconImage src={fromExchange.exchangeIcon} />
           <IconImage src={fromExchange.chainIcon} />${symbol}
@@ -186,7 +186,7 @@ function Info({
             />
           </>
         )}
-      </Body>
+      </Content>
     </>
   );
 }

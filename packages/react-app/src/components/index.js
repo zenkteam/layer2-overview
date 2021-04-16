@@ -37,7 +37,7 @@ export const Title = styled.h3`
   margin:1em;
 `
 
-export const Body = styled.body`
+export const Content = styled.div`
   align-items: center;
   background-color: #5E4C5A;
   color: white;

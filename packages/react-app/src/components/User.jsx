@@ -4,7 +4,7 @@ import moment from 'moment';
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Body, Button, IconImage, Label, Link, Note } from ".";
+import { Content, Button, IconImage, Label, Link, Note } from ".";
 import { getChannelForChain, withdraw } from '../connext';
 import { BSC_TOKEN_BALANCES, BSC_TOKEN_TRANSFERS } from "../graphql/subgraph";
 import { displayNumber, getMaticTokenBalances, getMaticTokenTransfers, getProvider } from "../utils";
@@ -133,7 +133,7 @@ function User({ chainInfos, connextNode, pancakeData, quickData, honeyData, acco
   console.log('***tokenTransfers', { tokenTransfers, userAddress, account })
   let counter = 0
   return (
-    <Body>
+    <Content>
       <h2>{userName}</h2>
       { userAddress && account && account.toLowerCase() === userAddress.toLowerCase() && (
         <>
@@ -230,7 +230,7 @@ function User({ chainInfos, connextNode, pancakeData, quickData, honeyData, acco
       </ul>
       <Note>xDAI Data is not available</Note>
 
-    </Body>
+    </Content>
   )
 }
 export default User;

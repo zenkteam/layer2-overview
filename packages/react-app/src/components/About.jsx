@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Body, Link } from ".";
+import { Content, Link } from ".";
 export const AboutContainer = styled.p`
   max-width: 80%;
   p {
@@ -18,7 +18,7 @@ export const IFrameContainer = styled.p`
 
 export default function About() {
   return (
-    <Body>
+    <Content>
       <AboutContainer>
         <h3>About Off L1</h3>
         <p>
@@ -121,6 +121,6 @@ export default function About() {
           so that you will be the first one to hear the progress.
         </p>
       </AboutContainer>
-    </Body>
+    </Content>
   );
 }

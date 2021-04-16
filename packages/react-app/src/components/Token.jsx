@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Body, IconImage, InternalLink } from ".";
+import { Content, IconImage, InternalLink } from ".";
 export const SwapLinkContainer = styled.span`
   margin-right: 1em;
 `;
@@ -13,7 +13,7 @@ function Token({ chainInfos, combined }) {
     tokenData = combined.filter((c) => c.symbol === symbol)[0];
   }
   return (
-    <Body>
+    <Content>
       <h1>{symbol}</h1>
       <ul>
         {combined.length === 0 ? (
@@ -54,7 +54,7 @@ function Token({ chainInfos, combined }) {
           })
         )}
       </ul>
-    </Body>
+    </Content>
   );
 }
 export default Token;

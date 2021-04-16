@@ -4,7 +4,7 @@ import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { ActionContainer, Body, Button, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
+import { ActionContainer, Content, Button, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
 import { getChannelsForChains, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
 import {
   displayNumber,
@@ -163,7 +163,7 @@ function Swap({
 
   console.log("****", { chainId, fromToken, toToken, isReadyToSwap });
   return (
-    <Body>
+    <Content>
       <h3>
         <IconImage src={fromExchange.exchangeIcon} /> $USDC x ${symbol}
         <IconImage src={fromExchange.chainIcon} />-{">"}
@@ -444,7 +444,7 @@ function Swap({
           </>
         )}
       </>
-    </Body>
+    </Content>
   );
 }
 export default Swap;
