@@ -52,7 +52,7 @@ function Swap({
     setLog((_log) => [..._log, [msg, option.tx, option.chainId]]);
   }
 
-  useEffect((account, connextNode, fromExchange, fromToken, fromTokenPair, toExchange, toToken, toTokenPair) => {
+  useEffect(() => {
     if (log.length > 0) {
       getTokenBalance(fromExchange.rpcUrl, fromToken, account).then((b) => {
         setFromTokenBalance(b);
