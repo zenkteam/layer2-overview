@@ -15,6 +15,7 @@ import Swap from "./components/Swap";
 import Info from "./components/Info";
 import User from "./components/User";
 import About from "./components/About";
+import Overview from "./components/Overview";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 import { getBalance, getPricesInUSD } from "./utils"
 import pancakeData from './data/pancake.json'
@@ -178,11 +179,14 @@ function App({ chainInfos }) {
           </Link>
           <NetworkContainer>
             <>
+              <Link to='/overview' >Overview</Link>
+              |
               <Link to='/about' >About</Link>
+              |
               {chainId && (
                 (currentChain && account) ? (
                   <div>
-                    Connected to {currentChain.name} as
+                     Connected to {currentChain.name} as
                     <Link
                       to={`/user/${account}`}
                     >
@@ -237,6 +241,14 @@ function App({ chainInfos }) {
               chainInfos={chainInfos}
               connextNode={node}
               account={account}
+            />
+          </Route>
+          <Route path="/overview">
+            <Overview
+              chainInfos={chainInfos}
+              combined={combined}
+              account={account}
+              connextNode={node}
             />
           </Route>
           <Route path="/">

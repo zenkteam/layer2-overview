@@ -58,6 +58,30 @@ export const getOnchainBalance = async (
   return balance;
 };
 
+export const getRouterCapacity = async (
+  ethProvider: JsonRpcProvider,
+  token: {
+    id: any;
+    decimals: string | number | ethers.BigNumber | utils.Bytes;
+  },
+  withdrawChannel: FullChannelState,
+) => {
+
+  const routerOnchain = await getOnchainBalance(
+    ethProvider,
+    token.id,
+    withdrawChannel.alice
+  );
+  
+  const routerOffchain = BigNumber.from(
+    getBalanceForAssetId(withdrawChannel, token.id, "bob")
+  );
+  return {
+    routerOnchainBalance: ethers.utils.formatUnits(routerOnchain, token.decimals),
+    routerOffchainBalacne: ethers.utils.formatUnits(routerOffchain, token.decimals),
+  };
+}
+
 export const verifyRouterCapacityForTransfer = async (
   ethProvider: JsonRpcProvider,
   toToken: {
@@ -68,30 +92,7 @@ export const verifyRouterCapacityForTransfer = async (
   transferAmount: any,
   swap: { hardcodedRate: number }
 ) => {
-  const toAssetId = toToken.id;
-  console.log(`verifyRouterCapacityForTransfer for ${transferAmount}`, {
-    toAssetId,
-    withdrawChannel,
-  });
-  const routerOnchain = await getOnchainBalance(
-    ethProvider,
-    toAssetId,
-    withdrawChannel.alice
-  );
-  console.log(`verifyRouterCapacityForTransfer2`, { routerOnchain });
-  const routerOffchain = BigNumber.from(
-    getBalanceForAssetId(withdrawChannel, toAssetId, "bob")
-  );
-  return {
-    routerOnchainBalance: ethers.utils.formatUnits(
-      routerOnchain,
-      toToken.decimals
-    ),
-    routerOffchainBalacne: ethers.utils.formatUnits(
-      routerOffchain,
-      toToken.decimals
-    ),
-  };
+  return getRouterCapacity(ethProvider, toToken, withdrawChannel);
 };
 
 export const getChannelForChain = async (
@@ -153,6 +154,8 @@ export const getChannelsForChains = async (
     getStateChannel: (arg0: { channelAddress: any }) => any;
   }
 ) => {
+
+  // get FromChannel
   let fromChannelRes = await node.getStateChannelByParticipants({
     chainId: fromChainId,
     counterparty: routerPublicIdentifier,
@@ -161,26 +164,29 @@ export const getChannelsForChains = async (
     throw fromChannelRes.getError();
   }
   let fromChannel = fromChannelRes.getValue();
-  console.log("fromChannel: ", fromChannel);
-  if (!fromChannel) {
-    const res = await node.setup({
-      chainId: fromChainId,
-      counterpartyIdentifier: routerPublicIdentifier,
-      timeout: "100000",
-    });
-    if (res.isError) {
-      throw res.getError();
-    }
-    console.log("res.getValue(): ", res.getValue());
-    const channelStateRes = await node.getStateChannel({
-      channelAddress: res.getValue(),
-    });
-    if (channelStateRes.isError) {
-      throw res.getError();
-    }
-    fromChannel = channelStateRes.getValue();
-  }
+  console.debug("fromChannel: ", fromChannel);
 
+  // Fallback???
+  // if (!fromChannel) {
+  //   const res = await node.setup({
+  //     chainId: fromChainId,
+  //     counterpartyIdentifier: routerPublicIdentifier,
+  //     timeout: "100000",
+  //   });
+  //   if (res.isError) {
+  //     throw res.getError();
+  //   }
+  //   console.log("res.getValue(): ", res.getValue());
+  //   const channelStateRes = await node.getStateChannel({
+  //     channelAddress: res.getValue(),
+  //   });
+  //   if (channelStateRes.isError) {
+  //     throw res.getError();
+  //   }
+  //   fromChannel = channelStateRes.getValue();
+  // }
+
+  // get ToChannel
   const toChannelRes = await node.getStateChannelByParticipants({
     chainId: toChainId,
     counterparty: routerPublicIdentifier,
@@ -189,25 +195,27 @@ export const getChannelsForChains = async (
     throw toChannelRes.getError();
   }
   let toChannel = toChannelRes.getValue();
-  console.log("toChannel: ", toChannel);
-  if (!toChannel) {
-    const res = await node.setup({
-      chainId: toChainId,
-      counterpartyIdentifier: routerPublicIdentifier,
-      timeout: "100000",
-    });
-    if (res.isError) {
-      throw res.getError();
-    }
-    console.log("res.getValue(): ", res.getValue());
-    const channelStateRes = await node.getStateChannel({
-      channelAddress: res.getValue(),
-    });
-    if (channelStateRes.isError) {
-      throw res.getError();
-    }
-    toChannel = channelStateRes.getValue();
-  }
+  console.debug("toChannel: ", toChannel);
+
+  // Fallback??
+  // if (!toChannel) {
+  //   const res = await node.setup({
+  //     chainId: toChainId,
+  //     counterpartyIdentifier: routerPublicIdentifier,
+  //     timeout: "100000",
+  //   });
+  //   if (res.isError) {
+  //     throw res.getError();
+  //   }
+  //   console.log("res.getValue(): ", res.getValue());
+  //   const channelStateRes = await node.getStateChannel({
+  //     channelAddress: res.getValue(),
+  //   });
+  //   if (channelStateRes.isError) {
+  //     throw res.getError();
+  //   }
+  //   toChannel = channelStateRes.getValue();
+  // }
   return { fromChannel, toChannel };
 };
 
