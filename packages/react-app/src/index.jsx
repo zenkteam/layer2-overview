@@ -62,7 +62,7 @@ const chainInfos = [{
   exchangeUrl: 'https://honeyswap.org/',
   instructionGuide: 'https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup',
   exchangeRouterAddress: '0x1C232F01118CB8B424793ae03F870aa7D0ac7f77',
-  explorerUrl: 'https://blockscout.com/poa/xdai',
+  explorerUrl: 'https://blockscout.com/poa/xdai', // https://blockscout.com/xdai/mainnet
   rpcUrl: 'https://rpc.xdaichain.com',
   tokenData: honeyData.data.tokens,
   derivedPriceCoin: 'dai',

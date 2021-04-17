@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { Content, Link } from ".";
-export const AboutContainer = styled.p`
+export const AboutContainer = styled.div`
   max-width: 80%;
   p {
     font-size: large;
@@ -11,7 +11,7 @@ export const AboutContainer = styled.p`
   }
 `;
 
-export const IFrameContainer = styled.p`
+export const IFrameContainer = styled.div`
   margin: 0 auto;
   width: 560px;
 `;
@@ -21,7 +21,7 @@ export default function About() {
     <Content>
       <AboutContainer>
         <h3>About Off L1</h3>
-        <p>
+        <div>
           Off L1 is a prototype to showcase 1 click cross chain arbitrage
           potential powered by
           <Link href="https://connext.networ/">Connext</Link>. State channel
@@ -29,9 +29,9 @@ export default function About() {
           on-chain transaction each time. Once you transferred your fund into
           on-chain multi-sig smart contract, you can send signed messages to
           instruct your counterparty to take actions on your behalf.
-        </p>
+        </div>
 
-        <p>
+        <div>
           In the case of cross chain payment, you have a state channel node
           running on your browser and the node interact a counter party called
           "Router". In theory, you can interact with various smart contracts and
@@ -41,7 +41,7 @@ export default function About() {
             Connext core concept section
           </Link>{" "}
           to learn more and watch the demo video to see it in action!
-        </p>
+        </div>
 
         <IFrameContainer>
           <iframe
@@ -49,23 +49,23 @@ export default function About() {
             width="560"
             height="315"
             src="https://www.youtube.com/embed/FRWpYjUJTyc"
-            frameborder="0"
+            frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
+            allowFullScreen
           ></iframe>
         </IFrameContainer>
 
-        <p>
+        <div>
           For those of you who have no patience watching nearly 10 min video,
           you can browse{" "}
           <Link href="https://speakerdeck.com/makoto_inoue/off-l1">
             the pitch slide
           </Link>
           .
-        </p>
+        </div>
 
         <h5>Risks and limitations</h5>
-        <p>
+        <div>
           You can play with the app by swapping a few coins to experience this
           new paradigm but please do NOT use it to seek profit. This app is to
           showcase only. Even though no one can maliciously steal your money
@@ -106,10 +106,10 @@ export default function About() {
               YOU MAY LOSE YOUR FUND
             </li>
           </ul>
-        </p>
+        </div>
 
         <h5>Interested in the development?</h5>
-        <p>
+        <div>
           The code is open-sourced on{" "}
           <Link href="https://github.com/makoto/off-l1">Github</Link> and you
           can follow the author's Twitter at{" "}
@@ -119,7 +119,7 @@ export default function About() {
             drop your email here
           </Link>{" "}
           so that you will be the first one to hear the progress.
-        </p>
+        </div>
       </AboutContainer>
     </Content>
   );

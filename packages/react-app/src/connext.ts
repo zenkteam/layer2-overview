@@ -1,15 +1,13 @@
 import { BrowserNode } from "@connext/vector-browser-node";
 import { ConditionalTransferCreatedPayload, ERC20Abi, FullChannelState, TransferNames } from "@connext/vector-types";
 import { Contract, utils, constants, ethers, providers } from "ethers";
-
 import UniswapWithdrawHelper from "@connext/vector-withdraw-helpers/artifacts/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol/UniswapWithdrawHelper.json";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { getBalanceForAssetId, getRandomBytes32 } from "@connext/vector-utils";
-
 import { BigNumber } from "@ethersproject/bignumber";
 
-const routerPublicIdentifier =
-  "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
+// From: https://docs.connext.network/connext-mainnet
+const routerPublicIdentifier = "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
 
 const withdrawHelpers: { [chainId: number]: string } = {
   137: "0xD1CC3E4b9c6d0cb0B9B97AEde44d4908FF0be507",

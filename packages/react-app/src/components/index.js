@@ -3,7 +3,7 @@ import {
   Link as RouterLink
 } from "react-router-dom";
 
-export const Note = styled.p`
+export const Note = styled.div`
   color: grey;
   margin: 5px;
 `
@@ -12,11 +12,11 @@ export const Highlight = styled.span`
   background-color: orange;
 `
 
-export const ActionContainer = styled.p`
+export const ActionContainer = styled.div`
    margin: 1em;
 `
 
-export const WarningContainer = styled.p`
+export const WarningContainer = styled.div`
   color: orange;
   text-align: center;
 `
