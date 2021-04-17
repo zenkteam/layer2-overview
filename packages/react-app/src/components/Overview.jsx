@@ -1,12 +1,10 @@
-import { Content, IconImage } from '.';
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-
-import connext from "../assets/connext.png";
-import { getTokenBalance, getProvider } from "../utils";
-import { getRouterCapacity, getChannelForChain } from "../connext";
-
 import * as d3 from "d3";
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import { Content, IconImage } from '.';
+import connext from "../assets/connext.png";
+import { getChannelForChain, getRouterCapacity } from "../connext";
+import { getProvider, getTokenBalance } from "../utils";
 
 export const Bubble = styled.foreignObject`
   background: gray;
@@ -30,11 +28,17 @@ export const Bubble = styled.foreignObject`
   }
 `;
 
-export const Balances = styled.ul`
+export const Balances = styled.table`
   font-size: 16px;
-  text-align: left;
-  margin-left: 10px;
-  margin-top: 3px;
+  margin: auto;
+  font-family: monospace;
+
+  .amount {
+    text-align: right;
+  }
+  .symbol {
+    text-align: left;
+  }
 `;
 
 function Overview({ chainInfos, combined, account, connextNode }) {
@@ -115,7 +119,6 @@ function Overview({ chainInfos, combined, account, connextNode }) {
           })
       }))
         .then(() => {
-          console.log('newRouters', newRouters)
           setRouters(newRouters)
         })
     }
@@ -159,7 +162,7 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         distance: 150,
       })
     })
-    for (let i = 0; i < chainInfos.length; i++) {
+    chainInfos.forEach((chain, i) => {
       data.links.push({
         source: 'router_' + chainInfos[i].name,
         target: 'router_' + chainInfos[(i + 1) % chainInfos.length].name,
@@ -170,7 +173,7 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         target: 'router_' + chainInfos[i].name,
         distance: 400,
       })
-    }
+    })
 
     const graph = d3.select('#graph')
 
@@ -198,7 +201,7 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         graph._groups[0][0].width.animVal.value / 2,
         graph._groups[0][0].height.animVal.value / 2
       ))
-      .on("tick", ticked);
+      .on("tick", ticked)
 
     function ticked() {
       link
@@ -223,42 +226,61 @@ function Overview({ chainInfos, combined, account, connextNode }) {
           <line className="link" key={i}></line>
         ))}
 
-        {chainInfos.map(chain => (
-          <Bubble className="node" style={{backgroundColor: chain.color}} id={'exchange-' + chain.name} key={chain.name}>
+        {chainInfos.map((chain, i) => (
+          <Bubble className="node" style={{ backgroundColor: chain.color }} id={'exchange-' + chain.name} key={chain.name}>
             <span className="icon">
               <IconImage src={chain.exchangeIcon} />
             </span>
             <h4>{chain.exchangeName}</h4>
             <Balances>
-
+              <tbody>
+                {
+                  combined ? combined.map((coin) => (
+                    <tr key={coin.symbol}>
+                      <td className="amount">{coin.data[i] ? (coin.data[i].derivedETH * chain.unitPrice).toFixed(3) : 'N/A'}</td>
+                      <td className="symbol">{coin.symbol.toUpperCase()}</td>
+                    </tr>
+                  )) : <tr></tr>
+                }
+              </tbody>
             </Balances>
           </Bubble>
         ))}
 
         {chainInfos.map(chain => (
-          <Bubble className="node" style={{backgroundColor: chain.color}} id={'chain-' + chain.name} key={chain.name}>
+          <Bubble className="node" style={{ backgroundColor: chain.color }} id={'chain-' + chain.name} key={chain.name}>
             <span className="icon">
               <IconImage src={chain.chainIcon} />
             </span>
             <h4>{chain.name}</h4>
             <Balances>
-              {Object.keys(balances[chain.name] || {}).map((key) => (
-                <li key={key}>{parseFloat(balances[chain.name][key]).toFixed(3)} { key.toUpperCase()}</li>
-              ))}
+              <tbody>
+                {Object.keys(balances[chain.name] || {}).map((key) => (
+                  <tr key={key}>
+                    <td className="amount">{parseFloat(balances[chain.name][key]).toFixed(3)}</td>
+                    <td className="symbol">{key.toUpperCase()}</td>
+                  </tr>
+                ))}
+              </tbody>
             </Balances>
           </Bubble>
         ))}
 
         {chainInfos.map(chain => (
-          <Bubble className="node" style={{backgroundColor: chain.color}} id={'router-' + chain.name} key={chain.name}>
+          <Bubble className="node" style={{ backgroundColor: chain.color }} id={'router-' + chain.name} key={chain.name}>
             <span className="icon">
               <IconImage src={connext} />
             </span>
             <h4>Router</h4>
             <Balances>
-              {Object.keys(routers[chain.name] || {}).map((key) => (
-                <li key={key}>{parseFloat(routers[chain.name][key]).toFixed(3)} { key.toUpperCase()}</li>
-              ))}
+              <tbody>
+                {Object.keys(routers[chain.name] || {}).map((key) => (
+                  <tr key={key}>
+                    <td className="amount">{parseFloat(routers[chain.name][key]).toFixed(3)}</td>
+                    <td className="symbol">{key.toUpperCase()}</td>
+                  </tr>
+                ))}
+              </tbody>
             </Balances>
           </Bubble>
         ))}

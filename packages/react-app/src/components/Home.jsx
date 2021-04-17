@@ -1,18 +1,7 @@
 import React from "react";
-import { Content, IconImage, InternalLink, Note} from ".";
+import { Content, IconImage, InternalLink } from ".";
 
 function Home({ chainInfos, combined }) {
-  // const r = combined.map((c) => {
-  //   return chainInfos.map((chain, i) => {
-  //     if (c?.data[i]?.symbol !== "DAI") {
-  //       return {
-  //         network: chain.name,
-  //         symbol: c?.data[i]?.symbol,
-  //         address: c?.data[i]?.id,
-  //       };
-  //     }
-  //   });
-  // });
   return (
     <Content>
       <h1 id="title"><span role="img" aria-labelledby="title">🐰</span>Off L1</h1>
@@ -24,9 +13,9 @@ function Home({ chainInfos, combined }) {
               <th>Coin</th>
               {chainInfos.map((c) => {
                 return (
-                  <th key={c.name} style={{padding: '5px 20px'}}>
+                  <th key={c.name} style={{ padding: '5px 20px' }}>
                     <IconImage src={c.exchangeIcon} />
-                    <br/>
+                    <br />
                     on {c.name}
                   </th>
                 );
@@ -41,14 +30,10 @@ function Home({ chainInfos, combined }) {
                     {coin.symbol}
                   </InternalLink>
                 </td>
-                
-                {chainInfos.map((_, i) => {
-                  console.log(coin.data[i], chainInfos[i].unitPrice, (coin.data[i].derivedETH * chainInfos[i].unitPrice).toFixed(2))
-                })}
 
                 {chainInfos.map((_, i) => (
-                  <td key={i} style={{textAlign: 'center'}}>
-                    { coin.data[i] ? '$'+(coin.data[i].derivedETH * chainInfos[i].unitPrice).toFixed(2) : 'N/A'}
+                  <td key={i} style={{ textAlign: 'center' }}>
+                    { coin.data[i] ? '$' + (coin.data[i].derivedETH * chainInfos[i].unitPrice).toFixed(2) : 'N/A'}
                   </td>
                 ))}
               </tr>

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { ActionContainer, Button, Content, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
-import { getChannelsForChains, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
+import { getChannelForChain, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
 import { displayNumber, getProvider, getQuote, getTokenBalance } from "../utils";
 import BlinkingValue from "./BlinkingValue";
 
@@ -25,9 +25,7 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
 
   // Connext Channels
   const [gettingChannels, setGettingChannels] = useState(false);
-  const [fromChannel, setFromChannel] = useState(false);
   const [toChannel, setToChannel] = useState(false);
-
 
 
   const [amount, setAmount] = useState(false);
@@ -65,6 +63,46 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
     });
   }
 
+  
+
+  // parse/get swap direction and tokens
+  const fromExchange = chainInfos.find((c) => c.exchangeName === from);
+  const toExchange = chainInfos.find((c) => c.exchangeName === to);
+  const fromSymbol = "USDC"
+  let fromTokenData, toTokenData, fromToken, fromTokenPair, toToken, toTokenPair
+  if (combined) {
+    fromTokenData = combined.find((c) => c.symbol === fromSymbol);
+    toTokenData = combined.find((c) => c.symbol === symbol);
+    fromToken = fromTokenData.data.find((d) => d.exchangeName === from);
+    fromTokenPair = toTokenData.data.find((d) => d.exchangeName === from);
+    toToken = toTokenData.data.find((d) => d.exchangeName === to);
+    toTokenPair = fromTokenData.data.find((d) => d.exchangeName === to);
+  }
+
+  if (connextNode && !gettingChannels) {
+    setGettingChannels(true)
+    getChannelForChain(toExchange.chainId, connextNode)
+    .then(channelRes => channelRes.getValue())
+    .then((channel) => {
+      setToChannel(channel);
+    });
+  }
+
+  if (combined && account && !gettingBalance) {
+    setGettingBalance(true)
+    getCurrentBalances()
+  }
+
+  // after the transfer has been completed
+  let transferFromDiff, transferToDiff, totalDiff, percentage;
+  if (postTransferFromBalance) {
+    transferFromDiff = postTransferFromBalance - preTransferFromBalance;
+    transferToDiff = postTransferToBalance - preTransferToBalance;
+    totalDiff = transferFromDiff + transferToDiff;
+    percentage = (totalDiff / amount) * 100;
+  }
+
+ 
   useEffect(() => {
     if (log.length > 0) {
       getCurrentBalances()
@@ -90,47 +128,8 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
         setEndTime(moment());
       }
     }
+    // eslint-disable-next-line
   }, [log]);
-
-  // parse/get swap direction and tokens
-  const fromExchange = chainInfos.find((c) => c.exchangeName === from);
-  const toExchange = chainInfos.find((c) => c.exchangeName === to);
-  const fromSymbol = "USDC"
-  let fromTokenData, toTokenData, fromToken, fromTokenPair, toToken, toTokenPair
-  if (combined) {
-    fromTokenData = combined.find((c) => c.symbol === fromSymbol);
-    toTokenData = combined.find((c) => c.symbol === symbol);
-    fromToken = fromTokenData.data.find((d) => d.exchangeName === from);
-    fromTokenPair = toTokenData.data.find((d) => d.exchangeName === from);
-    toToken = toTokenData.data.find((d) => d.exchangeName === to);
-    toTokenPair = fromTokenData.data.find((d) => d.exchangeName === to);
-  }
-
-  if (connextNode && !gettingChannels) {
-    setGettingChannels(true)
-    getChannelsForChains(fromExchange.chainId, toExchange.chainId, connextNode)
-    .then((b) => {
-      console.log("***getChannelsForChains", { b });
-      setFromChannel(b.fromChannel);
-      setToChannel(b.toChannel);
-    });
-  }
-
-  if (combined && account && !gettingBalance) {
-    setGettingBalance(true)
-    getCurrentBalances()
-  }
-
-  // after the transfer has been completed
-  let transferFromDiff, transferToDiff, totalDiff, percentage;
-  if (postTransferFromBalance) {
-    transferFromDiff = postTransferFromBalance - preTransferFromBalance;
-    transferToDiff = postTransferToBalance - preTransferToBalance;
-    totalDiff = transferFromDiff + transferToDiff;
-    percentage = (totalDiff / amount) * 100;
-  }
-
-
 
   ///???
   const firstQuote = quote[1];

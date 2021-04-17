@@ -29,15 +29,11 @@ function Info({ chainInfos, combined }) {
   // parse/get swap direction and tokens
   const fromExchange = chainInfos.find((c) => c.exchangeName === from);
   const toExchange = chainInfos.find((c) => c.exchangeName === to);
-  const fromSymbol = "USDC";
-  let fromTokenData, toTokenData, fromToken, fromTokenPair, toToken, toTokenPair;
+  let toTokenData, fromTokenPair, toToken;
   if (combined) {
-    fromTokenData = combined.find((c) => c.symbol === fromSymbol);
     toTokenData = combined.find((c) => c.symbol === symbol);
-    fromToken = fromTokenData.data.find((d) => d.exchangeName === from);
     fromTokenPair = toTokenData.data.find((d) => d.exchangeName === from);
     toToken = toTokenData.data.find((d) => d.exchangeName === to);
-    toTokenPair = fromTokenData.data.find((d) => d.exchangeName === to);
   }
 
   // request historic data
