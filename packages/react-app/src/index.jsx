@@ -34,6 +34,7 @@ const chainInfos = [{
   rpcUrl: 'https://bsc-dataseed1.defibit.io',
   tokenData: pancakeData.data.tokens,
   derivedPriceCoin: 'binancecoin',
+  color: 'rgb(125, 253, 94)',
 }, {
   chainId: 137,
   chainIcon: matic,
@@ -50,6 +51,7 @@ const chainInfos = [{
   rpcUrl: 'https://rpc-mainnet.matic.network',
   tokenData: quickData.data.tokens,
   derivedPriceCoin: 'ethereum', // Matic derived price is actually ETH
+  color: 'rgb(40, 179, 232)',
 }, {
   chainId: 100,
   chainIcon: xdai,
@@ -66,6 +68,7 @@ const chainInfos = [{
   rpcUrl: 'https://rpc.xdaichain.com',
   tokenData: honeyData.data.tokens,
   derivedPriceCoin: 'dai',
+  color: 'rgb(255, 177, 37)',
 }]
 
 // more swaps:
