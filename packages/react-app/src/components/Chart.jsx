@@ -27,7 +27,7 @@ export default function (props) {
         )
       }
       {yKeys.map((yKey, index) => {
-        return (<Line type="monotone" dataKey={yKey} stroke={colors[index]} />)
+        return (<Line key={yKey} type="monotone" dataKey={yKey} stroke={colors[index]} />)
       })}
       {brush && (<Brush />)}
     </LineChart>

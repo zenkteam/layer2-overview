@@ -15,6 +15,8 @@ import honeyData from './data/honey.json'
 import quickData from './data/quick.json'
 
 // See all subgraphs: https://thegraph.com/explorer/
+
+// Mainnet:
 const chainInfos = [{
   chainId: 56,
   chainIcon: bsc,
@@ -31,6 +33,7 @@ const chainInfos = [{
   exchangeRouterAddress: '0x05ff2b0db69458a0750badebc4f9e13add608c7f',
   rpcUrl: 'https://bsc-dataseed1.defibit.io',
   tokenData: pancakeData.data.tokens,
+  derivedPriceCoin: 'binancecoin',
 }, {
   chainId: 137,
   chainIcon: matic,
@@ -46,6 +49,7 @@ const chainInfos = [{
   explorerUrl: 'https://explorer-mainnet.maticvigil.com',
   rpcUrl: 'https://rpc-mainnet.matic.network',
   tokenData: quickData.data.tokens,
+  derivedPriceCoin: 'ethereum', // Matic derived price is actually ETH
 }, {
   chainId: 100,
   chainIcon: xdai,
@@ -61,6 +65,7 @@ const chainInfos = [{
   explorerUrl: 'https://blockscout.com/poa/xdai',
   rpcUrl: 'https://rpc.xdaichain.com',
   tokenData: honeyData.data.tokens,
+  derivedPriceCoin: 'dai',
 }]
 
 // more swaps:

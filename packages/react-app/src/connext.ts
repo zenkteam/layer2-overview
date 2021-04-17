@@ -1,10 +1,5 @@
 import { BrowserNode } from "@connext/vector-browser-node";
-import {
-  ConditionalTransferCreatedPayload,
-  ERC20Abi,
-  FullChannelState,
-  TransferNames,
-} from "@connext/vector-types";
+import { ConditionalTransferCreatedPayload, ERC20Abi, FullChannelState, TransferNames } from "@connext/vector-types";
 import { Contract, utils, constants, ethers, providers } from "ethers";
 
 import UniswapWithdrawHelper from "@connext/vector-withdraw-helpers/artifacts/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol/UniswapWithdrawHelper.json";
@@ -489,7 +484,7 @@ export const swap = async (
 
   // make sure tx is sent
   console.log('***toSwapWithdrawHash1')
-  try{
+  try {
     let toSwapWithdrawHash = toSwapWithdraw.getValue().transactionHash;
     console.log('***toSwapWithdrawHash2')
     setLog("(6/7) Swapping", { hash: toSwapWithdrawHash, chainId: toChainId });
@@ -498,8 +493,8 @@ export const swap = async (
       toSwapWithdrawHash!
     );
     console.log('***toSwapWithdrawHash4')
-    console.log("toSwapWithdraw receipt: ", receipt);  
-  }catch(e){
+    console.log("toSwapWithdraw receipt: ", receipt);
+  } catch (e) {
     debugger
   }
 

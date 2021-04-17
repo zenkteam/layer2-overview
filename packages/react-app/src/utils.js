@@ -144,19 +144,8 @@ export async function getQuote(
   ]
 }
 
-export async function getBNB() {
-  const result = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=binancecoin%2C%20dai&vs_currencies=usd`)
-  return await result.json()
-}
-
-// Matic derived price is actually ETH
-export async function getEth() {
-  const result = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`)
-  return await result.json()
-}
-
-export async function getDai() {
-  const result = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=dai&vs_currencies=usd`)
+export async function getPricesInUSD(coins) {
+  const result = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coins.join(',')}&vs_currencies=usd`)
   return await result.json()
 }
 

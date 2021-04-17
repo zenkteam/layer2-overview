@@ -4,35 +4,35 @@ import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import { ActionContainer, Content, Button, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
+import { ActionContainer, Button, Content, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
 import { getChannelsForChains, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
-import {
-  displayNumber,
-  getProvider, getQuote, getTokenBalance
-} from "../utils";
+import { displayNumber, getProvider, getQuote, getTokenBalance } from "../utils";
 import BlinkingValue from "./BlinkingValue";
 
 export const SwapLinkContainer = styled.span`
   margin-right: 1em;
 `;
 
-function Swap({
-  chainId,
-  chainInfos,
-  combined,
-  currentChain,
-  account,
-  connextNode,
-  provider,
-}) {
+function Swap({ chainId, chainInfos, combined, currentChain, account, connextNode, provider }) {
+  const { from, to, symbol } = useParams();
+  
+  // Balances
+  const [gettingBalance, setGettingBalance] = useState(false);
   const [fromTokenBalance, setFromTokenBalance] = useState(false);
   const [fromTokenPairBalance, setFromTokenPairBalance] = useState(false);
   const [toTokenBalance, setToTokenBalance] = useState(false);
   const [toTokenPairBalance, setToTokenPairBalance] = useState(false);
+
+  // Connext Channels
+  const [gettingChannels, setGettingChannels] = useState(false);
+  const [fromChannel, setFromChannel] = useState(false);
+  const [toChannel, setToChannel] = useState(false);
+
+
+
   const [amount, setAmount] = useState(false);
   const [quote, setQuote] = useState(false);
   const [log, setLog] = useState([]);
-  const { from, to, symbol } = useParams();
   const [preTransferFromBalance, setPreTransferFromBalance] = useState(false);
   const [postTransferFromBalance, setPostTransferFromBalance] = useState(false);
   const [preTransferToBalance, setPreTransferToBalance] = useState(false);
@@ -42,8 +42,6 @@ function Swap({
   const [transferComplete, setTransferComplete] = useState(false);
   const [startTime, setStartTime] = useState(false);
   const [endTime, setEndTime] = useState(false);
-  const [fromChannel, setFromChannel] = useState(false);
-  const [toChannel, setToChannel] = useState(false);
   const [routerOnchainBalance, setRouterOnchainBalance] = useState(false);
 
   function setLogHandler(msg, option = {}) {
@@ -52,89 +50,7 @@ function Swap({
     setLog((_log) => [..._log, [msg, option.tx, option.chainId]]);
   }
 
-  useEffect(() => {
-    if (log.length > 0) {
-      getTokenBalance(fromExchange.rpcUrl, fromToken, account).then((b) => {
-        setFromTokenBalance(b);
-      });
-      getTokenBalance(fromExchange.rpcUrl, fromTokenPair, account).then((b) => {
-        setFromTokenPairBalance(b);
-      });
-      getTokenBalance(toExchange.rpcUrl, toToken, account).then((b) => {
-        setToTokenBalance(b);
-      });
-      getTokenBalance(toExchange.rpcUrl, toTokenPair, account).then((b) => {
-        setToTokenPairBalance(b);
-      });
-
-      getRouterBalances({
-        fromChain: fromExchange.chainId,
-        toChain: toExchange.chainId,
-        fromToken: fromToken.id,
-        toToken: toToken.id,
-        node: connextNode,
-      }).then((b) => {
-        console.log("***getRouterBalances0", b);
-      });
-      if (_.last(log)[0]?.match("7/7")) {
-        getTokenBalance(fromExchange.rpcUrl, fromToken, account).then((b) => {
-          setPostTransferFromBalance(b);
-        });
-        getTokenBalance(toExchange.rpcUrl, toTokenPair, account).then((b) => {
-          setPostTransferToBalance(b);
-        });
-        setTransferComplete(true);
-        setEndTime(moment());
-      }
-    }
-  }, [log]);
-
-  if (chainInfos && chainInfos.length > 0) {
-  } else {
-    return "";
-  }
-  const fromExchange = chainInfos.filter((c) => c.exchangeName === from)[0];
-  const toExchange = chainInfos.filter((c) => c.exchangeName === to)[0];
-
-  let fromTokenData,
-    toTokenData,
-    fromToken,
-    fromTokenPair,
-    toToken,
-    toTokenPair,
-    number;
-  const fromSymbol = "USDC";
-  if (combined.length > 0) {
-    fromTokenData = combined.filter((c) => c.symbol === fromSymbol)[0];
-    toTokenData = combined.filter((c) => c.symbol === symbol)[0];
-    fromToken = fromTokenData.data?.filter((d) => d?.exchangeName === from)[0];
-    fromTokenPair = toTokenData.data?.filter(
-      (d) => d?.exchangeName === from
-    )[0];
-    toToken = toTokenData.data?.filter((d) => d?.exchangeName === to)[0];
-    toTokenPair = fromTokenData.data?.filter((d) => d?.exchangeName === to)[0];
-  }
-
-  if (connextNode && fromExchange && toExchange && !fromChannel && !toChannel) {
-    getChannelsForChains(
-      fromExchange.chainId,
-      toExchange.chainId,
-      connextNode
-    ).then((b) => {
-      console.log("***getChannelsForChains", { b });
-      setFromChannel(b.fromChannel);
-      setToChannel(b.toChannel);
-    });
-  }
-
-  if (
-    fromExchange &&
-    toExchange &&
-    fromToken &&
-    toToken &&
-    account &&
-    !fromTokenBalance
-  ) {
+  function getCurrentBalances() {
     getTokenBalance(fromExchange.rpcUrl, fromToken, account).then((b) => {
       setFromTokenBalance(b);
     });
@@ -148,6 +64,64 @@ function Swap({
       setToTokenPairBalance(b);
     });
   }
+
+  useEffect(() => {
+    if (log.length > 0) {
+      getCurrentBalances()
+      
+      getRouterBalances({
+        fromChain: fromExchange.chainId,
+        toChain: toExchange.chainId,
+        fromToken: fromToken.id,
+        toToken: toToken.id,
+        node: connextNode,
+      }).then((b) => {
+        console.log("***getRouterBalances0", b);
+      });
+
+      if (_.last(log)[0]?.match("7/7")) {
+        getTokenBalance(fromExchange.rpcUrl, fromToken, account).then((b) => {
+          setPostTransferFromBalance(b);
+        });
+        getTokenBalance(toExchange.rpcUrl, toTokenPair, account).then((b) => {
+          setPostTransferToBalance(b);
+        });
+        setTransferComplete(true);
+        setEndTime(moment());
+      }
+    }
+  }, [log]);
+
+  // parse/get swap direction and tokens
+  const fromExchange = chainInfos.find((c) => c.exchangeName === from);
+  const toExchange = chainInfos.find((c) => c.exchangeName === to);
+  const fromSymbol = "USDC"
+  let fromTokenData, toTokenData, fromToken, fromTokenPair, toToken, toTokenPair
+  if (combined) {
+    fromTokenData = combined.find((c) => c.symbol === fromSymbol);
+    toTokenData = combined.find((c) => c.symbol === symbol);
+    fromToken = fromTokenData.data.find((d) => d.exchangeName === from);
+    fromTokenPair = toTokenData.data.find((d) => d.exchangeName === from);
+    toToken = toTokenData.data.find((d) => d.exchangeName === to);
+    toTokenPair = fromTokenData.data.find((d) => d.exchangeName === to);
+  }
+
+  if (connextNode && !gettingChannels) {
+    setGettingChannels(true)
+    getChannelsForChains(fromExchange.chainId, toExchange.chainId, connextNode)
+    .then((b) => {
+      console.log("***getChannelsForChains", { b });
+      setFromChannel(b.fromChannel);
+      setToChannel(b.toChannel);
+    });
+  }
+
+  if (combined && account && !gettingBalance) {
+    setGettingBalance(true)
+    getCurrentBalances()
+  }
+
+  // after the transfer has been completed
   let transferFromDiff, transferToDiff, totalDiff, percentage;
   if (postTransferFromBalance) {
     transferFromDiff = postTransferFromBalance - preTransferFromBalance;
@@ -155,13 +129,20 @@ function Swap({
     totalDiff = transferFromDiff + transferToDiff;
     percentage = (totalDiff / amount) * 100;
   }
+
+
+
+  ///???
   const firstQuote = quote[1];
   const isReadyToSwap =
     currentChain?.name === fromExchange?.name &&
     parseFloat(fromTokenBalance) - amount > 0 &&
     routerOnchainBalance - firstQuote?.formatted > 1;
 
+  let number
   console.log("****", { chainId, fromToken, toToken, isReadyToSwap });
+
+
   return (
     <Content>
       <h3>
@@ -172,10 +153,11 @@ function Swap({
       </h3>
       <Note style={{ fontSize: "small" }}>
         (
+        {/* Does currently not refresh the balances
         <InternalLink to={`/exchanges/${to}-${from}/token/${symbol}`}>
           Switch Direction
         </InternalLink>
-        |
+        | */}
         <InternalLink to={`/exchanges/${to}-${from}/tokeninfo/${symbol}`}>
           Info
         </InternalLink>

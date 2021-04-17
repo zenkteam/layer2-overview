@@ -34,17 +34,21 @@ function Home({ chainInfos, combined }) {
             </tr>
           </thead>
           <tbody>
-            {combined.map((c) => (
-              <tr key={c.symbol}>
+            {combined.map((coin) => (
+              <tr key={coin.symbol}>
                 <td>
-                  <InternalLink to={`/token/${c.symbol}`}>
-                    {c.symbol}
+                  <InternalLink to={`/token/${coin.symbol}`}>
+                    {coin.symbol}
                   </InternalLink>
                 </td>
                 
+                {chainInfos.map((_, i) => {
+                  console.log(coin.data[i], chainInfos[i].unitPrice, (coin.data[i].derivedETH * chainInfos[i].unitPrice).toFixed(2))
+                })}
+
                 {chainInfos.map((_, i) => (
                   <td key={i} style={{textAlign: 'center'}}>
-                    { c?.data[i] ? '$'+(c.data[i].derivedETH * chainInfos[i].unitPrice).toFixed(2) : 'N/A' }
+                    { coin.data[i] ? '$'+(coin.data[i].derivedETH * chainInfos[i].unitPrice).toFixed(2) : 'N/A'}
                   </td>
                 ))}
               </tr>
