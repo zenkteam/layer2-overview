@@ -1,14 +1,12 @@
-# 🐰 Off L1
+# Interaktive Layer2 Overview
 
 ![](./hero.png)
 
-1 click cross chain Uniswap clone arbitrage app.
+It is difficult to keep track of how much of your money is currently in which chain. And a lot of work to move the right currency where you want to use it.
 
-- [Explainer video](https://www.youtube.com/watch?v=LELEh4aOzM4&)
-- [Slide](https://speakerdeck.com/makoto_inoue/off-l1)
-- [Demo site](http://surge.xyz)
+This project has both an educational purpose of learning how different chains work side by side and a potential use in your daily L2 activities.
 
-## How to set up
+## Get started
 
 ```
 git clone https://github.com/makoto/off-l1
@@ -32,27 +30,7 @@ yarn start
 - [BitQuery](https://bitquery.io/) = To show transaction history of Binance smart chain
 - [Covalent](https://www.covalenthq.com) = To show transaction history of Matic
 
-## TODO
-
-### Short term
-
-- Add tranaction link when the entire swap is complete
-- Add ability to recover stuck fund from [UniswapWithdrawHelper](https://github.com/connext/vector-withdraw-helpers/blob/main/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol)
-- Add xDAI - DAI token mapping
-- Add Token transfer history for xDAI
-- Use USDC as base price (to replace out of sync Pancake subgraph)
-- Allow user to switch base currency
-- Support Multi paths (eg: USDC-> BNB ->UNI)
-- Add historical quotes for each pair
-
-### Mid-longer term
-
-- Turn it into bot
-- Support more exchanges on different chains
-- Send back the swapped token back to original chain.
-- Split quote into muliple smaller trades across chains
-- Investigate the possibility of forming a pooled fund for profit sharing
 
 ## Credits
 
-Special thanks to [Rahul Sethuram](https://twitter.com/rhlsthrm) for the tireless support as well as actively contributing to the project
+This project is inspired by [Makoto Inoue](https://github.com/makoto)'s project [Off L1](https://github.com/makoto/off-l1).
