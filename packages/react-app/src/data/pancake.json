@@ -50,6 +50,16 @@
           "tradeVolumeUSD": "3039306.521202188726102727537441157",
           "txCount": "5691",
           "untrackedVolumeUSD": "3039322.711713971216187440143439423"
+        },
+        {
+          "decimals": "18",
+          "derivedETH": "1",
+          "id": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+          "symbol": "WBNB",
+          "totalLiquidity": "3248617.990725643481804216",
+          "tradeVolumeUSD": "13045677425.56418205932560471101256",
+          "txCount": "11293302",
+          "untrackedVolumeUSD": "13046268602.0219986712024568495995"
         }
       ]
     }

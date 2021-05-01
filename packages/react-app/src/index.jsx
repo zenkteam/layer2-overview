@@ -5,11 +5,14 @@ import { ApolloProvider } from "@apollo/react-hooks";
 import "./index.css";
 import App from "./App";
 import bsc from "./assets/bsc.png";
+import eth from "./assets/ethereum.png";
 import pancake from "./assets/pancake.png";
 import matic from "./assets/matic.png";
 import quick from "./assets/quick.png";
 import honey from "./assets/honey.png";
 import xdai from "./assets/xdai.png";
+import uniswap from "./assets/uniswap.png";
+import uniswapData from './data/uniswapv2.json'
 import pancakeData from './data/pancake.json'
 import honeyData from './data/honey.json'
 import quickData from './data/quick.json'
@@ -17,11 +20,30 @@ import quickData from './data/quick.json'
 // See all subgraphs: https://thegraph.com/explorer/
 
 // Mainnet:
-const chainInfos = [{
+const chainInfos = [
+  {
+  chainId: 1,
+  chainIcon: eth,
+  name: 'ETH',
+  client: new ApolloClient({ uri: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"}),
+  bitQueryClient: new ApolloClient({ uri: "https://graphql.bitquery.io" }),
+  tokenSymbol: 'ETH',
+  tokenAddress: '0xxeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+  exchangeName: 'UniswapV2',
+  exchangeIcon: uniswap,
+  exchangeUrl: 'https://app.uniswap.org/#/swap',
+  instructionGuide: '',
+  explorerUrl: 'https://etherscan.io/',
+  exchangeRouterAddress: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+  rpcUrl: 'https://mainnet.infura.io/v3/32d5cc1a92d84314919fa8b495765071',
+  tokenData: uniswapData.data.tokens,
+  derivedPriceCoin: 'ethereum',
+  color: 'rgb(125, 2, 94)',
+}, {
   chainId: 56,
   chainIcon: bsc,
   name: 'BSC',
-  client: new ApolloClient({ uri: "https://api.bscgraph.org/subgraphs/name/cakeswap"}), // out of sync: "https://api.thegraph.com/subgraphs/name/pancakeswap/exchange"
+  client: new ApolloClient({ uri: "https://api.thegraph.com/subgraphs/name/bscnodes/pancakeswap"}), // alt: https://api.bscgraph.org/subgraphs/name/cakeswap out of sync: "https://api.thegraph.com/subgraphs/name/pancakeswap/exchange"
   bitQueryClient: new ApolloClient({ uri: "https://graphql.bitquery.io" }),
   tokenSymbol: 'BNB',
   tokenAddress: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',

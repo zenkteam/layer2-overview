@@ -46,7 +46,7 @@ function Overview({ chainInfos, combined, account, connextNode }) {
   // Balances
   const [balances, setBalances] = useState({})
   useEffect(() => {
-    if (combined && account) {
+    if (account) {
       const newBalances = {}
       const promises = []
       for (let i = 0; i < chainInfos.length; i++) {
@@ -55,38 +55,23 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         }
 
         // request balances
-        for (let coin of combined) {
-          // console.log(chainInfos[i].name, coin.data[i])
-          promises.push(getTokenBalance(chainInfos[i].rpcUrl, coin.data[i], account)
-            .then((balance) => {
-              newBalances[chainInfos[i].name][coin.data[i].symbol] = balance
-            }))
+        for (const coin of chainInfos[i].tokenData) {
+          promises.push(
+            getTokenBalance(chainInfos[i].rpcUrl, coin, account)
+              .then((balance) => {
+                newBalances[chainInfos[i].name][coin.symbol] = balance
+              })
+              .catch(console.error)
+          )
         }
       }
-
-      // gas currency
-      // > binance - BNB
-      const WBNB = {
-        "decimals": "18",
-        "derivedETH": "1",
-        "id": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
-        "symbol": "WBNB",
-        "totalLiquidity": "3248617.990725643481804216",
-        "tradeVolumeUSD": "13045677425.56418205932560471101256",
-        "txCount": "11293302",
-        "untrackedVolumeUSD": "13046268602.0219986712024568495995"
-      }
-      promises.push(getTokenBalance(chainInfos[0].rpcUrl, WBNB, account)
-        .then((balance) => {
-          newBalances[chainInfos[0].name][WBNB.symbol] = balance
-        }))
 
       // update state once
       Promise.all(promises).then(() => {
         setBalances(newBalances)
       })
     }
-  }, [chainInfos, combined, account])
+  }, [chainInfos, account])
 
   // Routers
   const [routers, setRouters] = useState({})
@@ -235,9 +220,9 @@ function Overview({ chainInfos, combined, account, connextNode }) {
             <Balances>
               <tbody>
                 {
-                  combined ? combined.map((coin) => (
+                  chain.currentTokenData ? chain.currentTokenData.map((coin) => (
                     <tr key={coin.symbol}>
-                      <td className="amount">{coin.data[i] ? (coin.data[i].derivedETH * chain.unitPrice).toFixed(3) : 'N/A'}</td>
+                      <td className="amount">{(coin.derivedETH * chain.unitPrice).toFixed(3)}</td>
                       <td className="symbol">{coin.symbol.toUpperCase()}</td>
                     </tr>
                   )) : <tr></tr>

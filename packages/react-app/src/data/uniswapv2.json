@@ -1,0 +1,96 @@
+{
+    "data": {
+        "tokens": [
+            {
+                "decimals": "6",
+                "derivedETH": "0.0003421843492728376300196918781763947",
+                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "symbol": "USDC",
+                "totalLiquidity": "457784049.281617",
+                "tradeVolumeUSD": "27786172181.56743828865242432473397",
+                "txCount": "3685100",
+                "untrackedVolumeUSD": "45075446844.3751871477485241504597"
+            },
+            {
+                "decimals": "6",
+                "derivedETH": "0.0003419033374441399789333980997679523",
+                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "symbol": "USDT",
+                "totalLiquidity": "365319012.543309",
+                "tradeVolumeUSD": "23823393206.40166965654778679323866",
+                "txCount": "4092492",
+                "untrackedVolumeUSD": "24281348871.45679143630254148212387"
+            },
+            {
+                "decimals": "18",
+                "derivedETH": "0.0003422955092292350268011290088106014",
+                "id": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                "symbol": "DAI",
+                "totalLiquidity": "206034813.446100127994219951",
+                "tradeVolumeUSD": "13945474358.53073574568775214794941",
+                "txCount": "1934238",
+                "untrackedVolumeUSD": "271991358955014946354.2851613193287"
+            },
+            {
+                "decimals": "18",
+                "derivedETH": "0.0002793625225238715471574162551660775",
+                "id": "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0",
+                "symbol": "MATIC",
+                "totalLiquidity": "9687666.488468811809688435",
+                "tradeVolumeUSD": "496784613.62479361531269382313491",
+                "txCount": "94488",
+                "untrackedVolumeUSD": "509130022.6905924787006058951344619"
+            },
+            {
+                "decimals": "18",
+                "derivedETH": "0.01367782506007904038829976085498435",
+                "id": "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+                "symbol": "UNI",
+                "totalLiquidity": "3568014.707315643001297245",
+                "tradeVolumeUSD": "5756680386.930288889285157538454784",
+                "txCount": "685112",
+                "untrackedVolumeUSD": "5813426520.798769772613530338749718"
+            },
+            {
+                "decimals": "18",
+                "derivedETH": "0.005128551329713970944430017470174923",
+                "id": "0x6b3595068778dd592e39a122f4f5a5cf09c90fe2",
+                "symbol": "SUSHI",
+                "totalLiquidity": "194820.062258441383548985",
+                "tradeVolumeUSD": "1467122254.694372253150766119715074",
+                "txCount": "263740",
+                "untrackedVolumeUSD": "1526110425.572257912649671460259819"
+            },
+            {
+                "decimals": "18",
+                "derivedETH": "0.171574069877891081112798435824495",
+                "id": "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9",
+                "symbol": "AAVE",
+                "totalLiquidity": "47252.904489751250419688",
+                "tradeVolumeUSD": "1153070132.791503875887903228677137",
+                "txCount": "99892",
+                "untrackedVolumeUSD": "1155641074.882534300900598571160257"
+            },
+            {
+                "decimals": "18",
+                "derivedETH": "1",
+                "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                "symbol": "WETH",
+                "totalLiquidity": "1194373.391938501103960205",
+                "tradeVolumeUSD": "212824799116.9311475201413756742049",
+                "txCount": "39149142",
+                "untrackedVolumeUSD": "30510122939152917.93795425687821907"
+            },
+            {
+                "decimals": "8",
+                "derivedETH": "19.66816017254912125245030541100844",
+                "id": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                "symbol": "WBTC",
+                "totalLiquidity": "3853.10826275",
+                "tradeVolumeUSD": "6872568939.259080163944882804546938",
+                "txCount": "553093",
+                "untrackedVolumeUSD": "7946802382.152487880506658311766524"
+            }
+        ]
+    }
+}
