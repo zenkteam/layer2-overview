@@ -14,6 +14,7 @@ export const Bubble = styled.foreignObject`
   display: flex;
   padding: 10px;
   box-shadow: 1px 1px 3px 0px black;
+  cursor: pointer;
 
   .icon {
     margin: auto;
@@ -133,30 +134,36 @@ function Overview({ chainInfos, combined, account, connextNode }) {
     })
 
     // links
+    const outerForce = 180
+    const innerForce = 300
     chainInfos.forEach(chain => {
       data.links.push({
         source: 'exchange_' + chain.name,
         target: 'chain_' + chain.name,
-        distance: 150,
+        distance: outerForce,
       })
     })
     chainInfos.forEach(chain => {
       data.links.push({
         source: 'chain_' + chain.name,
         target: 'router_' + chain.name,
-        distance: 150,
+        distance: outerForce,
       })
     })
-    chainInfos.forEach((chain, i) => {
-      data.links.push({
-        source: 'router_' + chainInfos[i].name,
-        target: 'router_' + chainInfos[(i + 1) % chainInfos.length].name,
-        distance: 400,
-      })
-      data.links.push({
-        source: 'router_' + chainInfos[(i + 1) % chainInfos.length].name,
-        target: 'router_' + chainInfos[i].name,
-        distance: 400,
+    chainInfos.forEach((_, i) => {
+      chainInfos.forEach((_, j) => {
+        if (i < j) {
+          data.links.push({
+            source: 'router_' + chainInfos[i].name,
+            target: 'router_' + chainInfos[j].name,
+            distance: innerForce,
+          })
+          data.links.push({
+            source: 'router_' + chainInfos[j].name,
+            target: 'router_' + chainInfos[i].name,
+            distance: innerForce,
+          })
+        }
       })
     })
 
@@ -168,6 +175,11 @@ function Overview({ chainInfos, combined, account, connextNode }) {
       .join("foreignObject")
       .attr("width", 200)
       .attr("height", 200)
+      .call(d3.drag()  //sets the event listener for the specified typenames and returns the drag behavior.
+        .on("start", dragstarted) //start - after a new pointer becomes active (on mousedown or touchstart).
+        .on("drag", dragged)      //drag - after an active pointer moves (on mousemove or touchmove).
+        .on("end", dragended)     //end - after an active pointer becomes inactive (on mouseup, touchend or touchcancel).
+      );
 
     var link = graph
       .selectAll(".link")
@@ -176,7 +188,7 @@ function Overview({ chainInfos, combined, account, connextNode }) {
       .style("stroke", "#aaa")
       .style("stroke-width", "6px")
 
-    d3.forceSimulation(data.nodes)
+    var simulation = d3.forceSimulation(data.nodes)
       .force("link", d3.forceLink(data.links)
         .id(function (d) { return d.id; })
         .distance((link) => link.distance)
@@ -201,6 +213,30 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         .style("transform", "translate(-100px, -100px)")
     }
 
+    // based on: 
+    // - https://observablehq.com/@xianwu/simple-force-directed-graph-network-graph
+    // - https://github.com/d3/d3-force
+    // When the drag gesture starts, the targeted node is fixed to the pointer
+    // The simulation is temporarily “heated” during interaction by setting the target alpha to a non-zero value.
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart(); // sets the current target alpha to the specified number in the range [0,1].
+      d.fy = d.y; // fx - the node’s fixed x-position. Original is null.
+      d.fx = d.x; // fy - the node’s fixed y-position. Original is null.
+    }
+
+    // When the drag gesture starts, the targeted node is fixed to the pointer
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    // the targeted node is released when the gesture ends
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
   }, [chainInfos])
 
   return (
@@ -210,6 +246,11 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         {Array.apply(null, Array(chainInfos.length * 4)).map((_, i) => (
           <line className="link" key={i}></line>
         ))}
+
+        <line className="link"></line>
+        <line className="link"></line>
+        <line className="link"></line>
+        <line className="link"></line>
 
         {chainInfos.map((chain, i) => (
           <Bubble className="node" style={{ backgroundColor: chain.color }} id={'exchange-' + chain.name} key={chain.name}>
