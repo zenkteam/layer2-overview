@@ -88,19 +88,19 @@ function Overview({ chainInfos, combined, account, connextNode }) {
         return getChannelForChain(chain.chainId, connextNode)
           .then(channelRes => channelRes.getValue())
           .then((channel) => {
-
-            // capacity per coin
-            return Promise.all(combined.map(coin => {
-              const token = coin.data.find((d) => d.exchangeName === chain.exchangeName)
-              return getRouterCapacity(
-                getProvider(chain.rpcUrl),
-                token, // toAssetId
-                channel, // withdrawChannel
-              ).then(result => {
-                newRouters[chain.name][token.symbol] = result.routerOnchainBalance
-                return newRouters
-              })
-            }))
+            if (channel) {
+              // capacity per coin
+              return Promise.all(chain.tokenData.map(token => {
+                return getRouterCapacity(
+                  getProvider(chain.rpcUrl),
+                  token, // toAssetId
+                  channel, // withdrawChannel
+                ).then(result => {
+                  newRouters[chain.name][token.symbol] = result.routerOnchainBalance
+                  return newRouters
+                })
+              }))
+            }
 
           })
       }))

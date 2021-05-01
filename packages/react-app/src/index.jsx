@@ -28,7 +28,7 @@ const chainInfos = [
   client: new ApolloClient({ uri: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"}),
   bitQueryClient: new ApolloClient({ uri: "https://graphql.bitquery.io" }),
   tokenSymbol: 'ETH',
-  tokenAddress: '0xxeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+  tokenAddress: '0x0000000000000000000000000000000000000000',
   exchangeName: 'UniswapV2',
   exchangeIcon: uniswap,
   exchangeUrl: 'https://app.uniswap.org/#/swap',
