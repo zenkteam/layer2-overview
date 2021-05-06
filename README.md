@@ -9,8 +9,8 @@ This project has both an educational purpose of learning how different chains wo
 ## Get started
 
 ```
-git clone https://github.com/makoto/off-l1
-cd  off-l1/packages/react-app
+git clone https://github.com/makoto/layer2-overview
+cd  layer2-overview/packages/react-app
 yarn
 yarn start
 ```

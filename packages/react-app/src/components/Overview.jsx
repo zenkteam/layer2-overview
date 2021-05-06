@@ -13,8 +13,14 @@ export const Bubble = styled.foreignObject`
   color: black;
   display: flex;
   padding: 10px;
-  box-shadow: 1px 1px 3px 0px black;
+  box-shadow: 1px 1px 3px 0px gray;
+  border: 4px solid rgba(27, 6, 6, 0.5);
   cursor: pointer;
+  opacity: 0.95;
+
+  &:hover {
+    opacity: 1.0;
+  }
 
   .icon {
     margin: auto;

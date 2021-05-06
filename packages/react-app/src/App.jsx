@@ -177,13 +177,7 @@ function App({ chainInfos }) {
   return (
     <Router>
       <div>
-        <Header>
-          <Link
-            to={`/`}
-            style={{ textDecoration: "none", fontSize: "xx-large" }}
-          >
-            <span role="img" aria-label="title">🐰</span>
-          </Link>
+        {/* <Header>
           <NetworkContainer>
             <>
               <Link to='/overview' >Overview</Link>
@@ -210,7 +204,14 @@ function App({ chainInfos }) {
               />
             </>
           </NetworkContainer>
-        </Header>
+        </Header> */}
+        <NetworkContainer>
+          <WalletButton
+            provider={provider}
+            loadWeb3Modal={loadWeb3Modal}
+            logoutOfWeb3Modal={logoutOfWeb3Modal}
+          />
+        </NetworkContainer>
         <Switch>
           <Route path="/token/:symbol">
             <Token chainInfos={chainInfos} combined={combined} />
@@ -250,16 +251,16 @@ function App({ chainInfos }) {
               account={account}
             />
           </Route>
-          <Route path="/overview">
+          <Route path="/swap">
+            <Home chainInfos={chainInfos} combined={combined} />
+          </Route>
+          <Route path="/">
             <Overview
               chainInfos={chainInfos}
               combined={combined}
               account={account}
               connextNode={node}
             />
-          </Route>
-          <Route path="/">
-            <Home chainInfos={chainInfos} combined={combined} />
           </Route>
         </Switch>
       </div>

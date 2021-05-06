@@ -38,7 +38,7 @@ const chainInfos = [
   rpcUrl: 'https://mainnet.infura.io/v3/32d5cc1a92d84314919fa8b495765071',
   tokenData: uniswapData.data.tokens,
   derivedPriceCoin: 'ethereum',
-  color: 'rgb(125, 2, 94)',
+  color: 'rgb(218 120 124)',
 }, {
   chainId: 56,
   chainIcon: bsc,

@@ -4,7 +4,6 @@ import { Content, IconImage, InternalLink } from ".";
 function Home({ chainInfos, combined }) {
   return (
     <Content>
-      <h1 id="title"><span role="img" aria-labelledby="title">🐰</span>Off L1</h1>
       <div>Swap between Uniswap clones across chains</div>
       {combined?.length > 0 ? (
         <table>

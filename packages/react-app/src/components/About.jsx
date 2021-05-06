@@ -20,7 +20,7 @@ export default function About() {
   return (
     <Content>
       <AboutContainer>
-        <h3>About Off L1</h3>
+        <h3>About</h3>
         <div>
           Off L1 is a prototype to showcase 1 click cross chain arbitrage
           potential powered by

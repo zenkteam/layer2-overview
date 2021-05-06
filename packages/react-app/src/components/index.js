@@ -2,6 +2,7 @@ import styled from "styled-components";
 import {
   Link as RouterLink
 } from "react-router-dom";
+import background from "./../assets/background.png"
 
 export const Note = styled.div`
   color: grey;
@@ -39,13 +40,17 @@ export const Title = styled.h3`
 
 export const Content = styled.div`
   align-items: center;
-  background-color: #5E4C5A;
+  background-color: #ffffff;
+  background-image: url('${background}');
+  background-repeat: no-repeat;
+  background-position: right;
+  background-size: contain;
   color: white;
   display: flex;
   flex-direction: column;
   font-size: calc(10px + 2vmin);
   justify-content: center;
-  min-height: calc(100vh - 70px);
+  min-height: 100vh;
 `;
 
 export const Image = styled.img`
@@ -84,6 +89,7 @@ export const Button = styled.button`
   text-decoration: none;
   margin: 0px 20px;
   padding: 12px 24px;
+  border: 1px solid gray;
 
   ${props => props.disabled && "disabled"} :{
     opacity:0.5;
@@ -91,6 +97,9 @@ export const Button = styled.button`
 `;
 
 export const NetworkContainer = styled.span`
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
   vertical-align: center;
   align-items: center;
