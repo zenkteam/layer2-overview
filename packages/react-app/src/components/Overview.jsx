@@ -1,10 +1,11 @@
 import * as d3 from "d3";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Content, IconImage } from '.';
+import { Button, Content, IconImage } from '.';
 import connext from "../assets/connext.png";
 import { getChannelForChain, getRouterCapacity } from "../connext";
 import { getProvider, getTokenBalance } from "../utils";
+import WalletButton from './WalletButton';
 
 export const Bubble = styled.foreignObject`
   background: gray;
@@ -17,6 +18,7 @@ export const Bubble = styled.foreignObject`
   border: 4px solid rgba(27, 6, 6, 0.5);
   cursor: pointer;
   opacity: 0.95;
+  font-size: 16px;
 
   &:hover {
     opacity: 1.0;
@@ -28,10 +30,19 @@ export const Bubble = styled.foreignObject`
     width: 40px;
     background: white;
     border-radius: 50%;
+    font-size: 33px;
 
     img {
       margin: auto;
     }
+  }
+
+  h4 {
+    font-size: 20px;
+  }
+
+  .subheader {
+    margin-bottom: 6px;
   }
 `;
 
@@ -48,7 +59,29 @@ export const Balances = styled.table`
   }
 `;
 
-function Overview({ chainInfos, combined, account, connextNode }) {
+function compare(a,b) {
+  let fa = a.toLowerCase(),
+      fb = b.toLowerCase();
+
+  if (fa < fb) {
+      return -1;
+  }
+  if (fa > fb) {
+      return 1;
+  }
+  return 0;
+}
+
+function Overview({ chainInfos, combined, account, connextNode, provider, loadWeb3Modal, logoutOfWeb3Modal, initConnext }) {
+
+  const currenciesToShow = [
+    'USDC',
+    'USDT',
+    'DAI'
+  ]
+  function showCurrency(symbol) {
+    return currenciesToShow.indexOf(symbol) !== -1;
+  }
 
   // Balances
   const [balances, setBalances] = useState({})
@@ -264,10 +297,12 @@ function Overview({ chainInfos, combined, account, connextNode }) {
               <IconImage src={chain.exchangeIcon} />
             </span>
             <h4>{chain.exchangeName}</h4>
+            <span className="subheader">derivedETH * unitPrice:</span>
+
             <Balances>
               <tbody>
                 {
-                  chain.currentTokenData ? chain.currentTokenData.map((coin) => (
+                  chain.currentTokenData ? chain.currentTokenData.filter(coin => showCurrency(coin.symbol)).sort((a,b) => compare(a.symbol, b.symbol)).map((coin) => (
                     <tr key={coin.symbol}>
                       <td className="amount">{(coin.derivedETH * chain.unitPrice).toFixed(3)}</td>
                       <td className="symbol">{coin.symbol.toUpperCase()}</td>
@@ -285,16 +320,27 @@ function Overview({ chainInfos, combined, account, connextNode }) {
               <IconImage src={chain.chainIcon} />
             </span>
             <h4>{chain.name}</h4>
-            <Balances>
-              <tbody>
-                {Object.keys(balances[chain.name] || {}).map((key) => (
-                  <tr key={key}>
-                    <td className="amount">{parseFloat(balances[chain.name][key]).toFixed(3)}</td>
-                    <td className="symbol">{key.toUpperCase()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Balances>
+            <span className="subheader">Your balance:</span>
+
+            { account &&
+              <Balances>
+                <tbody>
+                  {Object.keys(balances[chain.name] || {}).filter(key => showCurrency(key)).sort().map((key) => (
+                    <tr key={key}>
+                      <td className="amount">{parseFloat(balances[chain.name][key]).toFixed(3)}</td>
+                      <td className="symbol">{key.toUpperCase()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Balances>
+            }
+            { !account &&
+              <WalletButton
+                provider={provider}
+                loadWeb3Modal={loadWeb3Modal}
+                logoutOfWeb3Modal={logoutOfWeb3Modal}
+              />
+            }
           </Bubble>
         ))}
 
@@ -304,16 +350,27 @@ function Overview({ chainInfos, combined, account, connextNode }) {
               <IconImage src={connext} />
             </span>
             <h4>Router</h4>
-            <Balances>
-              <tbody>
-                {Object.keys(routers[chain.name] || {}).map((key) => (
-                  <tr key={key}>
-                    <td className="amount">{parseFloat(routers[chain.name][key]).toFixed(3)}</td>
-                    <td className="symbol">{key.toUpperCase()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Balances>
+            <span className="subheader">Capacity on chain:</span>
+
+            { connextNode && 
+              <Balances>
+                <tbody>
+                  {Object.keys(routers[chain.name] || {}).filter(key => showCurrency(key)).sort().map((key) => (
+                    <tr key={key}>
+                      <td className="amount">{parseFloat(routers[chain.name][key]).toFixed(3)}</td>
+                      <td className="symbol">{key.toUpperCase()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Balances>
+            }
+            { !connextNode &&
+              <Button
+                onClick={() => initConnext()}
+              >
+                Connect Connext
+              </Button>
+            }
           </Bubble>
         ))}
 
