@@ -6,6 +6,7 @@ import connext from "../assets/connext.png";
 import { getChannelForChain, getRouterCapacity } from "../connext";
 import { getProvider, getTokenBalance } from "../utils";
 import WalletButton from './WalletButton';
+import { ConnextModal } from '@connext/vector-modal';
 
 export const Bubble = styled.foreignObject`
   background: gray;
@@ -74,11 +75,17 @@ function compare(a,b) {
 
 function Overview({ chainInfos, combined, account, connextNode, provider, loadWeb3Modal, logoutOfWeb3Modal, initConnext }) {
 
+  const [showModal, setShowModal] = useState(false);
+
   const currenciesToShow = [
     'USDC',
     'USDT',
-    'DAI'
-  ]
+    'DAI',
+
+    // gas
+    'BNB',
+  ];
+
   function showCurrency(symbol) {
     return currenciesToShow.indexOf(symbol) !== -1;
   }
@@ -375,6 +382,28 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
         ))}
 
       </svg>
+
+      <Button onClick={() => setShowModal(true)}>Move between chains</Button>
+
+      <div style={{'color': 'black'}}>
+        <ConnextModal
+          showModal={showModal}
+          onClose={() => setShowModal(false)}
+          onReady={params => console.log('MODAL IS READY =======>', params)}
+          routerPublicIdentifier={"vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8"}
+          loginProvider={window.ethereum}
+          injectedProvider={window.ethereum}
+
+          depositAssetId={'0x55d398326f99059ff775485246999027b3197955'}
+          depositChainId={56}
+          depositChainProvider={"https://bsc-dataseed1.defibit.io"}
+
+          withdrawalAddress={'0x65f6F29D3eb871254d71A79CC4F74dB3AAF3b86e'}
+          withdrawAssetId={'0x4ecaba5870353805a9f068101a40e0f32ed605c6'}
+          withdrawChainId={100}
+          withdrawChainProvider={"https://rpc.xdaichain.com"}
+        />
+      </div>
     </Content>
   )
 }
