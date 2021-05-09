@@ -51,6 +51,56 @@ export const Bubble = styled.foreignObject`
   }
 `;
 
+export const Link = styled.line`
+  cursor: pointer;
+  stroke: #aaa;
+  stroke-width: 6px;
+
+  &:hover {
+    stroke: blue;
+  }
+`;
+
+export const ExchangeModal = styled.div`
+  .exchangeBackground {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #00000042;
+  }
+
+  .exchangeModal {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -220px;
+    margin-top: -250px;
+    width: 400px;
+    height: 500px;
+    background: white;
+    border-radius: 20px;
+    color: black;
+    padding: 20px;
+    font-size: 16px;
+
+    h3 {
+      margin: 20px 0 0 0;
+    }
+    
+    input {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px;
+    }
+  }
+`;
+
+
 export const Balances = styled.table`
   font-size: 16px;
   margin: auto;
@@ -80,6 +130,7 @@ function compare(a,b) {
 function Overview({ chainInfos, combined, account, connextNode, provider, loadWeb3Modal, logoutOfWeb3Modal, initConnext }) {
 
   const [showModal, setShowModal] = useState(false);
+  const [showExchange, setShowExchange] = useState(false);
 
   const currenciesToShow = [
     'USDC',
@@ -167,6 +218,9 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
     }
 
     // nodes
+    data.nodes.push({
+      id: 'dapp_Matic',
+    })
     chainInfos.forEach(chain => {
       data.nodes.push({
         id: 'exchange_' + chain.name
@@ -186,6 +240,11 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
     // links
     const outerForce = 180
     const innerForce = 300
+    data.links.push({
+      source: 'chain_Matic',
+      target: 'dapp_Matic',
+      distance: outerForce,
+    })
     chainInfos.forEach(chain => {
       data.links.push({
         source: 'exchange_' + chain.name,
@@ -235,8 +294,6 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
       .selectAll(".link")
       .data(data.links)
       .join("line")
-      .style("stroke", "#aaa")
-      .style("stroke-width", "6px")
 
     var simulation = d3.forceSimulation(data.nodes)
       .force("link", d3.forceLink(data.links)
@@ -294,13 +351,23 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
       <svg id="graph" style={{ width: '100%', flexGrow: 1 }} xmlns="http://www.w3.org/2000/svg">
 
         {Array.apply(null, Array(chainInfos.length * 4)).map((_, i) => (
-          <line className="link" key={i}></line>
+          <Link className="link" key={i} onClick={() => setShowModal(true)}></Link>
         ))}
 
-        <line className="link"></line>
-        <line className="link"></line>
-        <line className="link"></line>
-        <line className="link"></line>
+        <Link className="link" onClick={() => setShowModal(true)}></Link>
+        <Link className="link" onClick={() => setShowModal(true)}></Link>
+        <Link className="link" onClick={() => setShowModal(true)}></Link>
+        <Link className="link" onClick={() => setShowModal(true)}></Link>
+        <Link className="link" onClick={() => setShowModal(true)}></Link>
+
+        <Bubble className="node" style={{ backgroundColor: chainInfos[2].color}} id="dapp-Matic" onClick={() => setShowExchange(true)}>
+          <span className="icon">
+            <IconImage src={chainInfos[2].chainIcon} />
+          </span>
+          <h4>Dapp</h4>
+          <br/>
+          <span className="subheader">Requires USDT</span>
+        </Bubble>
 
         {chainInfos.map((chain, i) => (
           <Bubble className={'node ' + (!chain.currentTokenData && 'empty ')} style={{ backgroundColor: chain.color }} id={'exchange-' + chain.name} key={chain.name}>
@@ -387,8 +454,6 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
 
       </svg>
 
-      {/* <Button onClick={() => setShowModal(true)}>Move between chains</Button>
-
       <div style={{'color': 'black'}}>
         <ConnextModal
           showModal={showModal}
@@ -407,7 +472,29 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
           withdrawChainId={100}
           withdrawChainProvider={"https://rpc.xdaichain.com"}
         />
-      </div> */}
+      </div>
+
+      { showExchange && 
+        <ExchangeModal>
+          <div className="exchangeBackground" onClick={() => setShowExchange(false)}>
+            <div className="exchangeModal">
+              <h1>Gather your coins</h1>
+
+              Required coins:<br/>
+              <input type="number" value="5"></input> USDT<br/>
+
+              Balance on Matic: 0.000 USDT
+
+              <h3>Suggested Transfer:</h3>
+              <ul>
+                <li>Transfer 4.996 USDC from BSC</li>
+                <li>Exchange 4.996 USDC to 5.000 USDT on Quick</li>
+              </ul>
+              <button>Perform Transfer</button>
+            </div>
+          </div>
+        </ExchangeModal>
+      }
     </Content>
   )
 }
