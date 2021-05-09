@@ -1,4 +1,4 @@
-# Interaktive Layer2 Overview
+# Interactive Layer2 Overview
 
 ![](./hero.png)
 
