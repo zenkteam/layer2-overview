@@ -21,6 +21,10 @@ export const Bubble = styled.foreignObject`
   opacity: 0.95;
   font-size: 16px;
 
+  &.empty {
+    background: #9e9c9c !important;
+  }
+
   &:hover {
     opacity: 1.0;
   }
@@ -299,7 +303,7 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
         <line className="link"></line>
 
         {chainInfos.map((chain, i) => (
-          <Bubble className="node" style={{ backgroundColor: chain.color }} id={'exchange-' + chain.name} key={chain.name}>
+          <Bubble className={'node ' + (!chain.currentTokenData && 'empty ')} style={{ backgroundColor: chain.color }} id={'exchange-' + chain.name} key={chain.name}>
             <span className="icon">
               <IconImage src={chain.exchangeIcon} />
             </span>
@@ -322,7 +326,7 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
         ))}
 
         {chainInfos.map(chain => (
-          <Bubble className="node" style={{ backgroundColor: chain.color }} id={'chain-' + chain.name} key={chain.name}>
+          <Bubble className={'node ' + (!account && 'empty ')} style={{ backgroundColor: chain.color }} id={'chain-' + chain.name} key={chain.name}>
             <span className="icon">
               <IconImage src={chain.chainIcon} />
             </span>
@@ -352,7 +356,7 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
         ))}
 
         {chainInfos.map(chain => (
-          <Bubble className="node" style={{ backgroundColor: chain.color }} id={'router-' + chain.name} key={chain.name}>
+          <Bubble className={'node ' + (!connextNode && 'empty ')} style={{ backgroundColor: chain.color }} id={'router-' + chain.name} key={chain.name}>
             <span className="icon">
               <IconImage src={connext} />
             </span>
@@ -383,7 +387,7 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
 
       </svg>
 
-      <Button onClick={() => setShowModal(true)}>Move between chains</Button>
+      {/* <Button onClick={() => setShowModal(true)}>Move between chains</Button>
 
       <div style={{'color': 'black'}}>
         <ConnextModal
@@ -403,7 +407,7 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
           withdrawChainId={100}
           withdrawChainProvider={"https://rpc.xdaichain.com"}
         />
-      </div>
+      </div> */}
     </Content>
   )
 }
