@@ -139,11 +139,11 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
     routerOnchainBalance - firstQuote?.formatted > 1;
 
   let number
-  console.log("****", { chainId, fromToken, toToken, isReadyToSwap });
+  //console.log("****", { chainId, fromToken, toToken, isReadyToSwap });
 
 
   return (
-    <Content>
+    <Content style={{color: 'black'}}>
       <h3>
         <IconImage src={fromExchange.exchangeIcon} /> $USDC x ${symbol}
         <IconImage src={fromExchange.chainIcon} />-{">"}

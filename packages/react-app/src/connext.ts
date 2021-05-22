@@ -9,6 +9,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 // From: https://docs.connext.network/connext-mainnet
 const routerPublicIdentifier = "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
 
+// Custom Contracts containing ??? ownend by ???
 const withdrawHelpers: { [chainId: number]: string } = {
   137: "0xD1CC3E4b9c6d0cb0B9B97AEde44d4908FF0be507",
   56: "0xad654314d3F6590243602D14b4089332EBb5227D",
@@ -18,17 +19,17 @@ const withdrawHelpers: { [chainId: number]: string } = {
 const chainProviders: { [chainId: number]: string } = {
   56: "https://bsc-dataseed.binance.org/",
   100: "https://rpc.xdaichain.com/",
-  137: "https://rpc-mainnet.matic.network/",
+  137: 'https://rpc-mainnet.maticvigil.com/',
 };
 
 const chainJsonProviders: { [chainId: number]: providers.JsonRpcProvider } = {
-  1: new JsonRpcProvider("https://mainnet.infura.io/v3/32d5cc1a92d84314919fa8b495765071/"),
+  1: new JsonRpcProvider("https://mainnet.infura.io/v3/b080ce70cc7e44fdbfcc6874149f5a63"),
   56: new JsonRpcProvider("https://bsc-dataseed.binance.org/"),
   100: new JsonRpcProvider("https://rpc.xdaichain.com/"),
-  137: new JsonRpcProvider("https://rpc-mainnet.matic.network"),
+  137: new JsonRpcProvider("https://rpc-mainnet.maticvigil.com/"),
 };
 
-// TODO: FILL IN ADDRESSES
+// Official routers
 const uniswapRouters: { [chainId: number]: string } = {
   137: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
   56: "0x05ff2b0db69458a0750badebc4f9e13add608c7f",
@@ -244,147 +245,110 @@ export const getRouterBalances = async ({
   };
 };
 
-export const swap = async (
-  swapAmount: ethers.BigNumberish,
-  fromToken: string,
-  fromTokenPair: string,
-  toToken: string,
-  toTokenPair: string,
-  fromChainId: number,
-  toChainId: number,
-  node: BrowserNode,
-  provider: providers.JsonRpcProvider,
-  setLog: any
-) => {
-  console.log("***swap1");
-  const signer = await provider.getSigner();
-  const signerAddress = await signer.getAddress();
-  setLog(`(0/7) Starting`);
-  console.log(`Starting swap: `, {
-    swapAmount,
-    fromToken,
-    toToken,
-    fromChainId,
-    toChainId,
-  });
 
-  let { fromChannel, toChannel } = await getChannelsForChains(
-    fromChainId,
-    toChainId,
-    node
-  );
 
-  const network = await provider.getNetwork();
-  if (network.chainId !== fromChainId) {
-    throw new Error(
-      `Wrong network, expected chainId ${fromChainId}, got ${network.chainId}`
-    );
-  }
-  console.log("***swap2");
-  // // TODO: handle ETH
-  const balance = getBalanceForAssetId(fromChannel, fromToken, "bob");
-  if (BigNumber.from(balance).lt(swapAmount)) {
-    console.log("***swap3");
-    const fromTokenContract = new Contract(
-      fromToken,
-      ERC20Abi,
-      provider.getSigner()
-    );
-    const tx = await fromTokenContract.transfer(
-      fromChannel.channelAddress,
-      swapAmount
-    );
-    setLog(`(1/7) Starting swap`, { tx: tx.hash, chainId: fromChainId });
-    console.log("***swap5");
-    console.log("Sent approval tx, waiting for confirmation: ", tx);
-    const receipt = await tx.wait();
-    console.log("Tx confirmed, receipt: ", receipt);
-    // reconcile deposit on from chain
-    const depositRes = await node.reconcileDeposit({
-      channelAddress: fromChannel.channelAddress,
-      assetId: fromToken,
-    });
-    console.log("*****swap5.1", { depositRes });
-    if (depositRes.isError) {
-      throw depositRes.getError();
-    }
-    console.log(`Deposit complete: `, depositRes.getValue());
-  } else {
-    setLog("(2/7) Balance in channel, sending now.");
-  }
 
-  // withdraw with swap data
-  const fromChainIdHelperContract = new Contract(
-    withdrawHelpers[fromChainId],
-    UniswapWithdrawHelper.abi,
-    chainJsonProviders[fromChainId]
-  );
-  console.log("Generating fromChain swap");
-  const fromSwapData = await fromChainIdHelperContract.getCallData({
-    amountIn: swapAmount,
-    amountOutMin: 1, // TODO: maybe change this, but this will make the swap always succeed
-    router: uniswapRouters[fromChainId],
-    to: fromChannel.channelAddress,
-    tokenA: fromToken,
-    tokenB: fromTokenPair,
-    path: [fromToken, fromTokenPair],
-  });
-  console.log("fromSwapData: ", fromSwapData);
-  const fromSwapWithdraw = await node.withdraw({
-    assetId: fromToken,
-    amount: swapAmount.toString(),
-    channelAddress: fromChannel.channelAddress,
-    callData: fromSwapData,
-    callTo: withdrawHelpers[fromChainId],
-    recipient: withdrawHelpers[fromChainId],
-  });
-  if (fromSwapWithdraw.isError) {
-    throw fromSwapWithdraw.getError();
-  }
-  console.log(`From swap withdraw complete: `, fromSwapWithdraw.getValue());
-  // make sure tx is sent
-  let fromSwapWithdrawTx = fromSwapWithdraw.getValue().transactionHash;
-  setLog(`(3/7) Swapping`, { tx: fromSwapWithdrawTx, chainId: fromChainId });
-  let receipt = await chainJsonProviders[fromChainId].waitForTransaction(
-    fromSwapWithdrawTx!
-  );
-  console.log("fromSwapWithdraw receipt: ", receipt);
 
-  // reconcile deposit on from chain
-  setLog("(4/7) Reconciling deposit");
-  const fromSwapDepositRes = await node.reconcileDeposit({
-    channelAddress: fromChannel.channelAddress,
-    assetId: fromTokenPair,
-  });
-  if (fromSwapDepositRes.isError) {
-    throw fromSwapDepositRes.getError();
-  }
-  console.log(`Deposit complete: `, fromSwapDepositRes.getValue());
-
-  let channelStateRes = await node.getStateChannel({
-    channelAddress: fromChannel.channelAddress,
+async function refreshChannel(node: BrowserNode, oldChannel: any) {
+  const channelStateRes = await node.getStateChannel({
+    channelAddress: oldChannel.channelAddress,
   });
   if (channelStateRes.isError) {
     throw channelStateRes.getError();
   }
-  fromChannel = channelStateRes.getValue();
-  console.log("fromChannel: ", fromChannel);
-  const postFromSwapBalance = getBalanceForAssetId(
-    fromChannel,
-    fromTokenPair,
-    "bob"
-  );
-  console.log("postFromSwapBalance: ", postFromSwapBalance);
+  return channelStateRes.getValue();
+}
 
-  // transfer cross chain
-  setLog("(5/7) Transferring cross chain");
+async function deposit(node: BrowserNode, channel: any, signer: any, token: string, amount: string) {
+  // Ask user to transfer to channel
+  const fromTokenContract = new Contract(
+    token,
+    ERC20Abi,
+    signer
+  );
+  const tx = await fromTokenContract.transfer(
+    channel.channelAddress,
+    amount
+  );
+  // setLog(`(1/7) Starting swap`, { tx: tx.hash, chainId: fromChainId });
+  
+  // Confirmed
+  const receipt = await tx.wait();
+  // reconcile deposit on from chain
+  const depositRes = await node.reconcileDeposit({
+    channelAddress: channel.channelAddress,
+    assetId: token,
+  });
+  if (depositRes.isError) {
+    throw depositRes.getError();
+  }
+  console.log(`INFO: Deposit complete`);
+}
+
+async function swapInChannel(node: BrowserNode, channel: any, amount: string, tokenA: string, tokenB: string) {
+  // define swap
+  const helperContract = new Contract(
+    withdrawHelpers[channel.networkContext.chainId],
+    UniswapWithdrawHelper.abi,
+    chainJsonProviders[channel.networkContext.chainId]
+  );
+  const swapDataOption = {
+    amountIn: amount,
+    amountOutMin: 1, // TODO: maybe change this, but this will make the swap always succeed
+    router: uniswapRouters[channel.networkContext.chainId],
+    to: channel.channelAddress,
+    tokenA,
+    tokenB,
+    path: [tokenA, tokenB],
+  };
+  const swapData = await helperContract.getCallData(swapDataOption);
+
+  // trigger swap by withdrawing coins to contract
+  const toSwapWithdraw = await node.withdraw({
+    assetId: tokenA,
+    amount: amount,
+    channelAddress: channel.channelAddress,
+    callData: swapData,
+    callTo: withdrawHelpers[channel.networkContext.chainId],
+    recipient: withdrawHelpers[channel.networkContext.chainId],
+  });
+  if (toSwapWithdraw.isError) {
+    throw toSwapWithdraw.getError();
+  }
+  console.log(`To swap withdraw complete: `, toSwapWithdraw.getValue());
+
+  // make sure tx is sent
+  let toSwapWithdrawHash = toSwapWithdraw.getValue().transactionHash;
+  //setLog("(6/7) Swapping", { hash: toSwapWithdrawHash, chainId: channel.networkContext.chainId });
+
+  if (toSwapWithdrawHash) {
+    const receipt = await chainJsonProviders[channel.networkContext.chainId].waitForTransaction(
+      toSwapWithdrawHash!
+    );
+    console.log("toSwapWithdraw receipt: ", receipt);
+  }
+
+  // reconcile deposit on toChain
+  const depositRes = await node.reconcileDeposit({
+    channelAddress: channel.channelAddress,
+    assetId: tokenB,
+  });
+  if (depositRes.isError) {
+    throw depositRes.getError();
+  }
+  console.log(`Deposit complete: `, depositRes.getValue());
+}
+
+async function transferBetweenChains(node: BrowserNode, fromChannel: any, fromToken: string, toChannel: any, toToken: string, amount: string) {
+  // generate Secrets
   const preImage = getRandomBytes32();
   const lockHash = utils.soliditySha256(["bytes32"], [preImage]);
   const routingId = getRandomBytes32();
+
   await node.conditionalTransfer({
     publicIdentifier: node.publicIdentifier,
-    amount: postFromSwapBalance,
-    assetId: fromTokenPair,
+    amount: amount,
+    assetId: fromToken,
     channelAddress: fromChannel.channelAddress,
     type: TransferNames.HashlockTransfer,
     details: {
@@ -395,7 +359,7 @@ export const swap = async (
       routingId,
     },
     recipient: node.publicIdentifier,
-    recipientChainId: toChainId,
+    recipientChainId: toChannel.networkContext.chainId,
     recipientAssetId: toToken,
   });
 
@@ -437,109 +401,123 @@ export const swap = async (
   }
   const resolve = resolveRes.getValue();
   console.log("resolve: ", resolve);
+}
 
-  // get updated channel balance
-  channelStateRes = await node.getStateChannel({
-    channelAddress: toChannel.channelAddress,
+async function withdrawFromChannel(node: BrowserNode, channel: any, recipient: any, token: string, amount: string) {
+  const withdrawed = await node.withdraw({
+    assetId: token,
+    amount: amount,
+    channelAddress: channel.channelAddress,
+    recipient,
   });
-  if (channelStateRes.isError) {
-    throw channelStateRes.getError();
+  if (withdrawed.isError) {
+    throw withdrawed.getError();
   }
-  toChannel = channelStateRes.getValue();
-  console.log("toChannel: ", toChannel);
-  const postCrossChainTransferBalance = getBalanceForAssetId(
-    toChannel,
-    toToken,
-    "bob"
+  const withdrawedHash = withdrawed.getValue().transactionHash;
+  if (withdrawedHash) {
+    const LastReceipt = await chainJsonProviders[channel.networkContext.chainId].waitForTransaction(
+      withdrawed.getValue().transactionHash!
+    );
+    console.log('LastReceipt', LastReceipt);
+  }
+  return withdrawed;
+}
+
+
+export const swap = async (
+  swapAmount: ethers.BigNumberish,
+  fromToken: string,
+  fromTokenPair: string,
+  toToken: string,
+  toTokenPair: string,
+  fromChainId: number,
+  toChainId: number,
+  node: BrowserNode,
+  provider: providers.JsonRpcProvider,
+  setLog: any
+) => {
+
+  // console.log("***swap1");
+  // setLog(`(0/7) Starting`);
+  // console.log(`Starting swap: `, {
+  //   swapAmount,
+  //   fromToken,
+  //   toToken,
+  //   fromChainId,
+  //   toChainId,
+  // });
+
+  const signer = await provider.getSigner();
+  const signerAddress = await signer.getAddress();
+  const network = await provider.getNetwork();
+  let { fromChannel, toChannel } = await getChannelsForChains(
+    fromChainId,
+    toChainId,
+    node
   );
+  
+  // user (provider) has to be on chain where transfers start
+  if (network.chainId !== fromChainId) {
+    throw new Error(
+      `Wrong network, expected chainId ${fromChainId}, got ${network.chainId}`
+    );
+  }
+
+  
+  const balance = getBalanceForAssetId(fromChannel, fromToken, "bob");
+  console.log('INFO: current fromToken Balance on fromChannel:', balance)
+  console.log('INFO: current fromTokenPair Balance on fromChannel:', getBalanceForAssetId(fromChannel, fromTokenPair, "bob"))
+  console.log('INFO: current toToken Balance on toChannel:', getBalanceForAssetId(toChannel, toToken, "bob"))
+  console.log('INFO: current toTokenPair Balance on toChannel:', getBalanceForAssetId(toChannel, toTokenPair, "bob"))
+
+  // ## Deposit fromToken in the channel
+  if (BigNumber.from(balance).lt(swapAmount)) {
+    console.log("INFO: >> need to load more on channel");
+
+    await deposit(node, fromChannel, provider.getSigner(), fromToken, swapAmount.toString());
+
+    fromChannel = await refreshChannel(node, fromChannel);
+    const balance = getBalanceForAssetId(fromChannel, fromToken, "bob");
+    console.log('INFO: fromToken Balance on fromChannel:', balance)
+  } else {
+    // setLog("(2/7) Balance in channel, sending now.");
+    console.log("INFO: >> that's enough");
+  }
+
+  // ## Swap on fromChain
+  await swapInChannel(node, fromChannel, swapAmount.toString(), fromToken, fromTokenPair)
+  
+
+  // refresh channel to get new balance
+  fromChannel = await refreshChannel(node, fromChannel);
+  const postFromSwapBalance = getBalanceForAssetId(fromChannel, fromTokenPair, "bob");
+  console.log("postFromSwapBalance: ", postFromSwapBalance);
+
+
+  // ## Transfer cross chain
+  await transferBetweenChains(node, fromChannel, fromTokenPair, toChannel, toToken, postFromSwapBalance);
+
+
+  // refresh channel to get new balance
+  toChannel = await refreshChannel(node, toChannel)
+  const postCrossChainTransferBalance = getBalanceForAssetId(toChannel, toToken, "bob");
   console.log("postCrossChainTransferBalance: ", postCrossChainTransferBalance);
 
+
   // withdraw with swap data
-  const toChainIdHelperContract = new Contract(
-    withdrawHelpers[toChainId],
-    UniswapWithdrawHelper.abi,
-    chainJsonProviders[toChainId]
-  );
-  const toSwapDataOption = {
-    amountIn: postCrossChainTransferBalance,
-    amountOutMin: 1, // TODO: maybe change this, but this will make the swap always succeed
-    router: uniswapRouters[toChainId],
-    to: toChannel.channelAddress,
-    tokenA: toToken,
-    tokenB: toTokenPair,
-    path: [toToken, toTokenPair],
-  };
-  console.log("Generating toChain swap", {
-    toSwapDataOption,
-  });
-  const toSwapData = await toChainIdHelperContract.getCallData(
-    toSwapDataOption
-  );
-  console.log("toSwapData: ", toSwapData);
-  const toSwapWithdraw = await node.withdraw({
-    assetId: toToken,
-    amount: postCrossChainTransferBalance,
-    channelAddress: toChannel.channelAddress,
-    callData: toSwapData,
-    callTo: withdrawHelpers[toChainId],
-    recipient: withdrawHelpers[toChainId],
-  });
-  if (toSwapWithdraw.isError) {
-    throw toSwapWithdraw.getError();
-  }
-  console.log(`To swap withdraw complete: `, toSwapWithdraw.getValue());
+  await swapInChannel(node, toChannel, postCrossChainTransferBalance, toToken, toTokenPair)
 
-  // make sure tx is sent
-  console.log('***toSwapWithdrawHash1')
-  try {
-    let toSwapWithdrawHash = toSwapWithdraw.getValue().transactionHash;
-    console.log('***toSwapWithdrawHash2')
-    setLog("(6/7) Swapping", { hash: toSwapWithdrawHash, chainId: toChainId });
-    console.log('***toSwapWithdrawHash3')
-    receipt = await chainJsonProviders[toChainId].waitForTransaction(
-      toSwapWithdrawHash!
-    );
-    console.log('***toSwapWithdrawHash4')
-    console.log("toSwapWithdraw receipt: ", receipt);
-  } catch (e) {
-    debugger
-  }
 
-  // reconcile deposit on toChain
-  const toSwapDepositRes = await node.reconcileDeposit({
-    channelAddress: toChannel.channelAddress,
-    assetId: toTokenPair,
-  });
-  if (toSwapDepositRes.isError) {
-    throw toSwapDepositRes.getError();
-  }
-  console.log(`Deposit complete: `, toSwapDepositRes.getValue());
-
-  channelStateRes = await node.getStateChannel({
-    channelAddress: toChannel.channelAddress,
-  });
-  if (channelStateRes.isError) {
-    throw channelStateRes.getError();
-  }
-  toChannel = channelStateRes.getValue();
-  console.log("toChannel: ", toChannel);
+  // refresh channel to get new balance
+  toChannel = await refreshChannel(node, toChannel)
   const posttoSwapBalance = getBalanceForAssetId(toChannel, toTokenPair, "bob");
   console.log("posttoSwapBalance: ", posttoSwapBalance);
 
-  // withdraw to address
-  const toWithdraw = await node.withdraw({
-    assetId: toTokenPair,
-    amount: posttoSwapBalance,
-    channelAddress: toChannel.channelAddress,
-    recipient: signerAddress,
-  });
-  if (toWithdraw.isError) {
-    throw toWithdraw.getError();
-  }
-  receipt = await chainJsonProviders[toChainId].waitForTransaction(
-    toWithdraw.getValue().transactionHash!
-  );
 
-  setLog("(7/7) 🎉 Transfer Complete");
+  // withdraw to address
+  const toWithdraw = await withdrawFromChannel(node, toChannel, signerAddress, toTokenPair, posttoSwapBalance);
+  
+
+  // setLog("(7/7) 🎉 Transfer Complete");
   console.log(`To withdraw complete: `, toWithdraw.getValue());
 };

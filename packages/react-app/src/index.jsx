@@ -35,7 +35,7 @@ const chainInfos = [
   instructionGuide: '',
   explorerUrl: 'https://etherscan.io/',
   exchangeRouterAddress: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-  rpcUrl: 'https://mainnet.infura.io/v3/32d5cc1a92d84314919fa8b495765071',
+  rpcUrl: 'https://mainnet.infura.io/v3/b080ce70cc7e44fdbfcc6874149f5a63',
   tokenData: uniswapData.data.tokens,
   derivedPriceCoin: 'ethereum',
   color: 'rgb(218 120 124)',
@@ -70,7 +70,7 @@ const chainInfos = [
   instructionGuide: 'https://docs.matic.network/docs/develop/metamask/config-matic',
   exchangeRouterAddress: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
   explorerUrl: 'https://explorer-mainnet.maticvigil.com',
-  rpcUrl: 'https://rpc-mainnet.matic.network',
+  rpcUrl: 'https://rpc-mainnet.maticvigil.com/', // 'https://rpc-mainnet.matic.network',
   tokenData: quickData.data.tokens,
   derivedPriceCoin: 'ethereum', // Matic derived price is actually ETH
   color: 'rgb(40, 179, 232)',
