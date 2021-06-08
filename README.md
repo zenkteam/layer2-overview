@@ -15,6 +15,8 @@ yarn
 yarn start
 ```
 
+http://localhost:3000/#/exchanges/Honey-Quick/token/USDT
+
 ## Chains and exchanges supported
 
 - [PancakeSwap](https://pancakeswap.finance) on [Binance Smart Chain](https://www.binance.org/en/smartChain)

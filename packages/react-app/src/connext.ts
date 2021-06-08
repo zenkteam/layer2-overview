@@ -1,15 +1,17 @@
 import { BrowserNode } from "@connext/vector-browser-node";
-import { ConditionalTransferCreatedPayload, ERC20Abi, FullChannelState, TransferNames } from "@connext/vector-types";
+import { ConditionalTransferCreatedPayload, ERC20Abi, FullChannelState, TransferNames, EngineEvent, EngineEvents, ConditionalTransferResolvedPayload, DepositReconciledPayload, WithdrawalReconciledPayload, WithdrawalResolvedPayload } from "@connext/vector-types";
 import { Contract, utils, constants, ethers, providers } from "ethers";
 import UniswapWithdrawHelper from "@connext/vector-withdraw-helpers/artifacts/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol/UniswapWithdrawHelper.json";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { getBalanceForAssetId, getRandomBytes32 } from "@connext/vector-utils";
 import { BigNumber } from "@ethersproject/bignumber";
+import { Evt } from "evt";
 
 // From: https://docs.connext.network/connext-mainnet
 const routerPublicIdentifier = "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
 
 // Custom Contracts containing ??? ownend by ???
+// https://github.com/connext/vector-withdraw-helpers/blob/main/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol
 const withdrawHelpers: { [chainId: number]: string } = {
   137: "0xD1CC3E4b9c6d0cb0B9B97AEde44d4908FF0be507",
   56: "0xad654314d3F6590243602D14b4089332EBb5227D",
@@ -31,9 +33,15 @@ const chainJsonProviders: { [chainId: number]: providers.JsonRpcProvider } = {
 
 // Official routers
 const uniswapRouters: { [chainId: number]: string } = {
-  137: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
-  56: "0x05ff2b0db69458a0750badebc4f9e13add608c7f",
-  100: "0x1C232F01118CB8B424793ae03F870aa7D0ac7f77",
+  // Polygon QuickSwap https://github.com/QuickSwap/QuickSwap-subgraph/blob/master/subgraph.yaml => Factory 0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32
+  137: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff", // router v2 https://explorer-mainnet.maticvigil.com/address/0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff/contracts
+  
+  // BSC PancakeSwap https://docs.pancakeswap.finance/
+  56: "0x05ff2b0db69458a0750badebc4f9e13add608c7f", // router v1 https://bscscan.com/address/0x05ff2b0db69458a0750badebc4f9e13add608c7f#contracts
+  // 56: "0x10ED43C718714eb63d5aA57B78B54704E256024E", // router v2 https://bscscan.com/address/0x10ED43C718714eb63d5aA57B78B54704E256024E#code
+  
+  // xDAI Honeyswap https://wiki.1hive.org/projects/honeyswap/honeyswap-on-xdai-1
+  100: "0x1C232F01118CB8B424793ae03F870aa7D0ac7f77", // router v2 https://blockscout.com/poa/xdai/address/0x1C232F01118CB8B424793ae03F870aa7D0ac7f77/contracts
 };
 
 export const initNode = async () => {
@@ -245,18 +253,70 @@ export const getRouterBalances = async ({
   };
 };
 
+export type EvtContainer = {
+  [EngineEvents.CONDITIONAL_TRANSFER_CREATED]: Evt<ConditionalTransferCreatedPayload>;
+  [EngineEvents.CONDITIONAL_TRANSFER_RESOLVED]: Evt<ConditionalTransferResolvedPayload>;
+  [EngineEvents.DEPOSIT_RECONCILED]: Evt<DepositReconciledPayload>;
+  [EngineEvents.WITHDRAWAL_RECONCILED]: Evt<WithdrawalReconciledPayload>;
+  [EngineEvents.WITHDRAWAL_RESOLVED]: Evt<WithdrawalResolvedPayload>;
+};
+
+export const createEvtContainer = (node: BrowserNode): EvtContainer => {
+  const createdTransfer = Evt.create<ConditionalTransferCreatedPayload>();
+  const resolvedTransfer = Evt.create<ConditionalTransferResolvedPayload>();
+  const deposit = Evt.create<DepositReconciledPayload>();
+  const withdrawReconciled = Evt.create<WithdrawalReconciledPayload>();
+  const withdrawResolved = Evt.create<WithdrawalResolvedPayload>();
+
+  node.on(EngineEvents.CONDITIONAL_TRANSFER_CREATED, data => {
+    console.log("EngineEvents.CONDITIONAL_TRANSFER_CREATED: ", data);
+    createdTransfer.post(data);
+  });
+  node.on(EngineEvents.CONDITIONAL_TRANSFER_RESOLVED, data => {
+    console.log("EngineEvents.CONDITIONAL_TRANSFER_RESOLVED: ", data);
+    resolvedTransfer.post(data);
+  });
+  node.on(EngineEvents.DEPOSIT_RECONCILED, data => {
+    console.log("EngineEvents.DEPOSIT_RECONCILED: ", data);
+    deposit.post(data);
+  });
+  node.on(EngineEvents.WITHDRAWAL_RECONCILED, data => {
+    console.log("EngineEvents.WITHDRAWAL_RECONCILED: ", data);
+    withdrawReconciled.post(data);
+  });
+  node.on(EngineEvents.WITHDRAWAL_RESOLVED, data => {
+    console.log("EngineEvents.WITHDRAWAL_RESOLVED: ", data);
+    withdrawResolved.post(data);
+  });
+  return {
+    [EngineEvents.CONDITIONAL_TRANSFER_CREATED]: createdTransfer,
+    [EngineEvents.CONDITIONAL_TRANSFER_RESOLVED]: resolvedTransfer,
+    [EngineEvents.DEPOSIT_RECONCILED]: deposit,
+    [EngineEvents.WITHDRAWAL_RECONCILED]: withdrawReconciled,
+    [EngineEvents.WITHDRAWAL_RESOLVED]: withdrawResolved,
+  };
+};
 
 
 
-
-async function refreshChannel(node: BrowserNode, oldChannel: any) {
+async function refreshChannel(node: BrowserNode, oldChannel: any) : Promise<FullChannelState> {
   const channelStateRes = await node.getStateChannel({
     channelAddress: oldChannel.channelAddress,
   });
   if (channelStateRes.isError) {
     throw channelStateRes.getError();
   }
-  return channelStateRes.getValue();
+  return channelStateRes.getValue() as FullChannelState;
+}
+
+async function refreshBalance(
+  node: BrowserNode, 
+  oldChannel: FullChannelState,
+  assetId: string,
+  participant: "alice" | "bob",
+) {
+  const channel = await refreshChannel(node, oldChannel);
+  return getBalanceForAssetId(channel, assetId, participant);
 }
 
 async function deposit(node: BrowserNode, channel: any, signer: any, token: string, amount: string) {
@@ -275,6 +335,10 @@ async function deposit(node: BrowserNode, channel: any, signer: any, token: stri
   // Confirmed
   const receipt = await tx.wait();
   // reconcile deposit on from chain
+  // const e = {} as EngineEvent;
+  // node.waitFor<EngineEvent>(e, 300_000, payload => {
+  //   console.log(payload);
+  // })
   const depositRes = await node.reconcileDeposit({
     channelAddress: channel.channelAddress,
     assetId: token,
@@ -285,7 +349,25 @@ async function deposit(node: BrowserNode, channel: any, signer: any, token: stri
   console.log(`INFO: Deposit complete`);
 }
 
-async function swapInChannel(node: BrowserNode, channel: any, amount: string, tokenA: string, tokenB: string) {
+async function handleNodeResponse(channel: FullChannelState, nodeResponsePromise: Promise<any>) {
+  // try normal handling instead
+  const resolved = await nodeResponsePromise;
+  if (resolved.isError) {
+    throw resolved.getError();
+  }
+  console.log(`nodeResponse: `, resolved.getValue());
+
+  // make sure tx is sent
+  const resolvedHash = resolved.getValue().transactionHash;
+  if (resolvedHash) {
+    const receipt = await chainJsonProviders[channel.networkContext.chainId].waitForTransaction(
+      resolvedHash!
+    );
+    console.log("nodeResponse tx receipt: ", receipt);
+  }
+}
+
+async function swapInChannel(evt: EvtContainer, node: BrowserNode, channel: FullChannelState, amount: string, tokenA: string, tokenB: string) {
   // define swap
   const helperContract = new Contract(
     withdrawHelpers[channel.networkContext.chainId],
@@ -304,7 +386,7 @@ async function swapInChannel(node: BrowserNode, channel: any, amount: string, to
   const swapData = await helperContract.getCallData(swapDataOption);
 
   // trigger swap by withdrawing coins to contract
-  const toSwapWithdraw = await node.withdraw({
+  const toSwapWithdrawPromise = node.withdraw({
     assetId: tokenA,
     amount: amount,
     channelAddress: channel.channelAddress,
@@ -312,20 +394,11 @@ async function swapInChannel(node: BrowserNode, channel: any, amount: string, to
     callTo: withdrawHelpers[channel.networkContext.chainId],
     recipient: withdrawHelpers[channel.networkContext.chainId],
   });
-  if (toSwapWithdraw.isError) {
-    throw toSwapWithdraw.getError();
-  }
-  console.log(`To swap withdraw complete: `, toSwapWithdraw.getValue());
-
-  // make sure tx is sent
-  let toSwapWithdrawHash = toSwapWithdraw.getValue().transactionHash;
-  //setLog("(6/7) Swapping", { hash: toSwapWithdrawHash, chainId: channel.networkContext.chainId });
-
-  if (toSwapWithdrawHash) {
-    const receipt = await chainJsonProviders[channel.networkContext.chainId].waitForTransaction(
-      toSwapWithdrawHash!
-    );
-    console.log("toSwapWithdraw receipt: ", receipt);
+  
+  try {
+    await evt.WITHDRAWAL_RESOLVED.waitFor(30_000)
+  } catch {
+    await handleNodeResponse(channel, toSwapWithdrawPromise)
   }
 
   // reconcile deposit on toChain
@@ -336,7 +409,6 @@ async function swapInChannel(node: BrowserNode, channel: any, amount: string, to
   if (depositRes.isError) {
     throw depositRes.getError();
   }
-  console.log(`Deposit complete: `, depositRes.getValue());
 }
 
 async function transferBetweenChains(node: BrowserNode, fromChannel: any, fromToken: string, toChannel: any, toToken: string, amount: string) {
@@ -403,24 +475,20 @@ async function transferBetweenChains(node: BrowserNode, fromChannel: any, fromTo
   console.log("resolve: ", resolve);
 }
 
-async function withdrawFromChannel(node: BrowserNode, channel: any, recipient: any, token: string, amount: string) {
-  const withdrawed = await node.withdraw({
+async function withdrawFromChannel(evt: EvtContainer, node: BrowserNode, channel: FullChannelState, recipient: any, token: string, amount: string) {
+  const withdrawPromise = node.withdraw({
     assetId: token,
     amount: amount,
     channelAddress: channel.channelAddress,
+    publicIdentifier: channel.bobIdentifier,
     recipient,
   });
-  if (withdrawed.isError) {
-    throw withdrawed.getError();
+
+  try {
+    await evt.WITHDRAWAL_RESOLVED.waitFor(30_000)
+  } catch {
+    await handleNodeResponse(channel, withdrawPromise)
   }
-  const withdrawedHash = withdrawed.getValue().transactionHash;
-  if (withdrawedHash) {
-    const LastReceipt = await chainJsonProviders[channel.networkContext.chainId].waitForTransaction(
-      withdrawed.getValue().transactionHash!
-    );
-    console.log('LastReceipt', LastReceipt);
-  }
-  return withdrawed;
 }
 
 
@@ -436,16 +504,6 @@ export const swap = async (
   provider: providers.JsonRpcProvider,
   setLog: any
 ) => {
-
-  // console.log("***swap1");
-  // setLog(`(0/7) Starting`);
-  // console.log(`Starting swap: `, {
-  //   swapAmount,
-  //   fromToken,
-  //   toToken,
-  //   fromChainId,
-  //   toChainId,
-  // });
 
   const signer = await provider.getSigner();
   const signerAddress = await signer.getAddress();
@@ -463,6 +521,7 @@ export const swap = async (
     );
   }
 
+  const evts = createEvtContainer(node);
   
   const balance = getBalanceForAssetId(fromChannel, fromToken, "bob");
   console.log('INFO: current fromToken Balance on fromChannel:', balance)
@@ -476,48 +535,56 @@ export const swap = async (
 
     await deposit(node, fromChannel, provider.getSigner(), fromToken, swapAmount.toString());
 
-    fromChannel = await refreshChannel(node, fromChannel);
-    const balance = getBalanceForAssetId(fromChannel, fromToken, "bob");
+    // fromChannel = await refreshChannel(node, fromChannel);
+    const balance = await refreshBalance(node, fromChannel, fromToken, "bob");
     console.log('INFO: fromToken Balance on fromChannel:', balance)
   } else {
     // setLog("(2/7) Balance in channel, sending now.");
     console.log("INFO: >> that's enough");
   }
 
-  // ## Swap on fromChain
-  await swapInChannel(node, fromChannel, swapAmount.toString(), fromToken, fromTokenPair)
-  
+  // // ## Swap on fromChain
+  console.log('INFO: swap start');
+  await swapInChannel(evts, node, fromChannel, swapAmount.toString(), fromToken, fromTokenPair)
+  console.log('INFO: swap done');
 
   // refresh channel to get new balance
-  fromChannel = await refreshChannel(node, fromChannel);
-  const postFromSwapBalance = getBalanceForAssetId(fromChannel, fromTokenPair, "bob");
+  // fromChannel = await refreshChannel(node, fromChannel);
+  const postFromSwapBalance = await refreshBalance(node, fromChannel, fromTokenPair, "bob");
   console.log("postFromSwapBalance: ", postFromSwapBalance);
 
 
   // ## Transfer cross chain
+  console.log('INFO: transfer start');
   await transferBetweenChains(node, fromChannel, fromTokenPair, toChannel, toToken, postFromSwapBalance);
-
+  console.log('INFO: transfer done');
 
   // refresh channel to get new balance
-  toChannel = await refreshChannel(node, toChannel)
-  const postCrossChainTransferBalance = getBalanceForAssetId(toChannel, toToken, "bob");
+  // toChannel = await refreshChannel(node, toChannel)
+  const postCrossChainTransferBalance = await refreshBalance(node, toChannel, toToken, "bob");
   console.log("postCrossChainTransferBalance: ", postCrossChainTransferBalance);
 
 
   // withdraw with swap data
-  await swapInChannel(node, toChannel, postCrossChainTransferBalance, toToken, toTokenPair)
-
+  console.log('INFO: swap start');
+  await swapInChannel(evts, node, toChannel, postCrossChainTransferBalance, toToken, toTokenPair)
+  console.log('INFO: swap done');
 
   // refresh channel to get new balance
-  toChannel = await refreshChannel(node, toChannel)
-  const posttoSwapBalance = getBalanceForAssetId(toChannel, toTokenPair, "bob");
+  // toChannel = await refreshChannel(node, toChannel)
+  const posttoSwapBalance = await refreshBalance(node, toChannel, toTokenPair, "bob");
   console.log("posttoSwapBalance: ", posttoSwapBalance);
 
 
   // withdraw to address
-  const toWithdraw = await withdrawFromChannel(node, toChannel, signerAddress, toTokenPair, posttoSwapBalance);
-  
+  console.log('INFO: withdraw start');
+  await withdrawFromChannel(evts, node, toChannel, signerAddress, toTokenPair, posttoSwapBalance);
+  console.log('INFO: withdraw done');
 
-  // setLog("(7/7) 🎉 Transfer Complete");
-  console.log(`To withdraw complete: `, toWithdraw.getValue());
+  console.log(`To withdraw complete`);
+
+  console.log('INFO: current fromToken Balance on fromChannel:', await refreshBalance(node, fromChannel, fromToken, "bob"))
+  console.log('INFO: current fromTokenPair Balance on fromChannel:', await refreshBalance(node, fromChannel, fromTokenPair, "bob"))
+  console.log('INFO: current toToken Balance on toChannel:', await refreshBalance(node, toChannel, toToken, "bob"))
+  console.log('INFO: current toTokenPair Balance on toChannel:', await refreshBalance(node, toChannel, toTokenPair, "bob"))
 };
