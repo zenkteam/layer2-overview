@@ -124,8 +124,7 @@ function Overview({ chainInfos, combined, account, connextNode, provider, loadWe
 
       // channel for chain
       Promise.all(chainInfos.map(chain => {
-        return getChannelForChain(chain.chainId, connextNode)
-          .then(channelRes => channelRes.getValue())
+        return getChannelForChain(connextNode, chain.chainId)
           .then((channel) => {
             if (channel) {
               // capacity per coin

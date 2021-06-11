@@ -7,15 +7,16 @@ import { getBalanceForAssetId, getRandomBytes32 } from "@connext/vector-utils";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Evt } from "evt";
 
+
 // From: https://docs.connext.network/connext-mainnet
 const routerPublicIdentifier = "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
 
 // Custom Contracts containing ??? ownend by ???
 // https://github.com/connext/vector-withdraw-helpers/blob/main/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol
 const withdrawHelpers: { [chainId: number]: string } = {
-  137: "0xD1CC3E4b9c6d0cb0B9B97AEde44d4908FF0be507",
   56: "0xad654314d3F6590243602D14b4089332EBb5227D",
   100: "0xe12639c8C458f719146286f8B8b7050176577a62",
+  137: "0xD1CC3E4b9c6d0cb0B9B97AEde44d4908FF0be507",
 };
 
 const chainProviders: { [chainId: number]: string } = {
@@ -105,34 +106,27 @@ export const verifyRouterCapacityForTransfer = async (
   return getRouterCapacity(ethProvider, toToken, withdrawChannel);
 };
 
-export const getChannelForChain = async (
-  chainId: any,
-  node: {
-    getStateChannelByParticipants: (arg0: {
-      chainId: any;
-      counterparty: string;
-    }) => any;
-  }
-) => {
-  return await node.getStateChannelByParticipants({
+export const getChannelForChain = async (node: BrowserNode, chainId: number) => {
+  const channelRes = await node.getStateChannelByParticipants({
     chainId: chainId,
     counterparty: routerPublicIdentifier,
-  });
-};
+  })
+  if (channelRes.isError) {
+    throw channelRes.getError()
+  }
+  const channel = channelRes.getValue()
+  if (!channel) {
+    throw 'No channel'
+  }
+  return channel as FullChannelState
+}
 
 export const withdraw = async (
-  node: {
-    withdraw: (arg0: {
-      assetId: any;
-      amount: any;
-      channelAddress: any;
-      recipient: any;
-    }) => any;
-  },
+  node: BrowserNode,
   assetId: any,
   amount: any,
   channelAddress: any,
-  recipient: boolean
+  recipient: string,
 ) => {
   console.log("**** withdraw", {
     assetId,
@@ -236,16 +230,8 @@ export const getRouterBalances = async ({
   toToken,
   node,
 }: any) => {
-  let { fromChannel, toChannel } = await getChannelsForChains(
-    fromChain,
-    toChain,
-    node
-  );
-  const preTransferBalance = getBalanceForAssetId(
-    fromChannel,
-    fromToken,
-    "bob"
-  );
+  let { fromChannel, toChannel } = await getChannelsForChains(fromChain, toChain, node);
+  const preTransferBalance = getBalanceForAssetId(fromChannel, fromToken, "bob");
   const postTransferBalance = getBalanceForAssetId(toChannel, toToken, "bob");
   return {
     preTransferBalance,
@@ -475,7 +461,7 @@ async function transferBetweenChains(node: BrowserNode, fromChannel: any, fromTo
   console.log("resolve: ", resolve);
 }
 
-async function withdrawFromChannel(evt: EvtContainer, node: BrowserNode, channel: FullChannelState, recipient: any, token: string, amount: string) {
+async function withdrawFromChannel(evt: EvtContainer, node: BrowserNode, channel: FullChannelState, recipient: string, token: string, amount: string) {
   const withdrawPromise = node.withdraw({
     assetId: token,
     amount: amount,
@@ -489,6 +475,54 @@ async function withdrawFromChannel(evt: EvtContainer, node: BrowserNode, channel
   } catch {
     await handleNodeResponse(channel, withdrawPromise)
   }
+}
+
+
+export const getChannelBalances = async (node: BrowserNode, chainId: number) => {
+  const channel = await getChannelForChain(node, chainId)
+
+  const alice: {[k: string]: any} = {};
+  const bob: {[k: string]: any} = {};
+
+  channel.assetIds.forEach((value : string, index: number) => {
+    alice[value] = channel.balances[index].amount[0]
+    bob[value] = channel.balances[index].amount[1]
+  })
+
+  return  {
+    chainId: chainId,
+    channelAddress: channel.channelAddress,
+    alice,
+    bob,
+  }
+}
+
+export const getRouterExitCapacity = async (node: BrowserNode, chainId: number, token: string, decimals: number, symbol: string) => {
+  const channel = await getChannelForChain(node, chainId)
+
+  const capacity = await getRouterCapacity(
+    chainJsonProviders[chainId],
+    {
+      id: token,
+      decimals: decimals,
+    }, // toAssetId
+    channel, // withdrawChannel
+  )
+
+  console.log(chainId, symbol, capacity.routerOnchainBalance)
+}
+
+export const reconcileDeposit = async (node: BrowserNode, chainId: number, token: string) => {
+  const channel = await getChannelForChain(node, chainId)
+
+  const depositRes = await node.reconcileDeposit({
+    channelAddress: channel.channelAddress,
+    assetId: token,
+  });
+  if (depositRes.isError) {
+    throw depositRes.getError();
+  }
+  console.log(depositRes)
 }
 
 

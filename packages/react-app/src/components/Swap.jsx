@@ -5,9 +5,12 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { ActionContainer, Button, Content, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
-import { getChannelForChain, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
+import { getRouterExitCapacity, reconcileDeposit, getChannelBalances, getChannelForChain, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
 import { displayNumber, getProvider, getQuote, getTokenBalance } from "../utils";
 import BlinkingValue from "./BlinkingValue";
+// import uniswaps from "./../uniswaps";
+
+// uniswaps() // DEBUG
 
 export const SwapLinkContainer = styled.span`
   margin-right: 1em;
@@ -63,7 +66,30 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
     });
   }
 
-  
+  const getBalances = async () => {
+    for (chainId of [56, 100, 137]) {
+      const balances = await getChannelBalances(connextNode, chainId);
+      console.log(balances)
+    }
+  }
+  window.getBalances = getBalances
+  window.reconcileDeposit = (chainId, tokenId) => {
+    reconcileDeposit(connextNode, chainId, tokenId)
+  }
+  window.capacity = () => {
+
+    getRouterExitCapacity(connextNode, 56, '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', 18, 'USDC')
+    getRouterExitCapacity(connextNode, 56, '0x55d398326f99059fF775485246999027B3197955', 18, 'USDT')
+    getRouterExitCapacity(connextNode, 56, '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3', 18, 'DAI')
+
+    getRouterExitCapacity(connextNode, 100, '0x4ECaBa5870353805a9F068101A40E0f32ed605C6', 6, 'USDT')
+    getRouterExitCapacity(connextNode, 100, '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83', 6, 'USDC')
+    getRouterExitCapacity(connextNode, 100, '0x44fa8e6f47987339850636f88629646662444217', 18, 'DAI')
+
+    getRouterExitCapacity(connextNode, 137, '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', 6, 'USDC')
+    getRouterExitCapacity(connextNode, 137, '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', 6, 'USDT')
+    getRouterExitCapacity(connextNode, 137, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', 18, 'DAI')
+  }
 
   // parse/get swap direction and tokens
   const fromExchange = chainInfos.find((c) => c.exchangeName === from);
@@ -81,8 +107,7 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
 
   if (connextNode && !gettingChannels) {
     setGettingChannels(true)
-    getChannelForChain(toExchange.chainId, connextNode)
-    .then(channelRes => channelRes.getValue())
+    getChannelForChain(connextNode, toExchange.chainId)
     .then((channel) => {
       setToChannel(channel);
     });
