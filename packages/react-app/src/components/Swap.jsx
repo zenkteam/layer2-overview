@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { ActionContainer, Button, Content, IconImage, Input, InternalLink, Link, Note, WarningContainer } from ".";
-import { getRouterExitCapacity, reconcileDeposit, getChannelBalances, getChannelForChain, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
+import { listenToMetrics, getRouterExitCapacity, reconcileDeposit, getChannelBalances, getChannelForChain, getRouterBalances, swap, verifyRouterCapacityForTransfer } from "../connext";
 import { displayNumber, getProvider, getQuote, getTokenBalance } from "../utils";
 import BlinkingValue from "./BlinkingValue";
 // import uniswaps from "./../uniswaps";
@@ -88,8 +88,10 @@ function Swap({ chainId, chainInfos, combined, currentChain, account, connextNod
 
     getRouterExitCapacity(connextNode, 137, '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', 6, 'USDC')
     getRouterExitCapacity(connextNode, 137, '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', 6, 'USDT')
-    getRouterExitCapacity(connextNode, 137, '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', 18, 'DAI')
+    getRouterExitCapacity(connextNode, 137, '0x0000000000000000000000000000000000000000', 18, 'DAI')
   }
+
+  window.listenToMetrics = listenToMetrics
 
   // parse/get swap direction and tokens
   const fromExchange = chainInfos.find((c) => c.exchangeName === from);

@@ -8,8 +8,30 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Evt } from "evt";
 
 
+const vectorUtils = require("@connext/vector-utils")
+
+export const listenToMetrics = async (callback : any) => {
+  const signer = vectorUtils.getRandomChannelSigner()
+  const messaging = new vectorUtils.NatsBasicMessagingService({
+    messagingUrl: "https://messaging.connext.network",
+    signer,
+  })
+  await messaging.connect()
+  console.log("Connected to NATS.")
+  messaging.subscribe("*.*.metrics", (msg: any, err: any) => {
+    if (err) {
+      console.error("Uh oh: ", err)
+      return
+    }
+    console.log('got message', msg)
+    callback(msg)
+  })
+}
+
+
+
 // From: https://docs.connext.network/connext-mainnet
-const routerPublicIdentifier = "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
+const routerPublicIdentifier = "vector52rjrwRFUkaJai2J4TrngZ6doTUXGZhizHmrZ6J15xVv4YFgFC" // "vector892GMZ3CuUkpyW8eeXfW2bt5W73TWEXtgV71nphXUXAmpncnj8";
 
 // Custom Contracts containing ??? ownend by ???
 // https://github.com/connext/vector-withdraw-helpers/blob/main/contracts/UniswapWithdrawHelper/UniswapWithdrawHelper.sol
@@ -171,24 +193,24 @@ export const getChannelsForChains = async (
   console.debug("fromChannel: ", fromChannel);
 
   // Fallback???
-  // if (!fromChannel) {
-  //   const res = await node.setup({
-  //     chainId: fromChainId,
-  //     counterpartyIdentifier: routerPublicIdentifier,
-  //     timeout: "100000",
-  //   });
-  //   if (res.isError) {
-  //     throw res.getError();
-  //   }
-  //   console.log("res.getValue(): ", res.getValue());
-  //   const channelStateRes = await node.getStateChannel({
-  //     channelAddress: res.getValue(),
-  //   });
-  //   if (channelStateRes.isError) {
-  //     throw res.getError();
-  //   }
-  //   fromChannel = channelStateRes.getValue();
-  // }
+  if (!fromChannel) {
+    const res = await node.setup({
+      chainId: fromChainId,
+      counterpartyIdentifier: routerPublicIdentifier,
+      timeout: "100000",
+    });
+    if (res.isError) {
+      throw res.getError();
+    }
+    console.log("res.getValue(): ", res.getValue());
+    const channelStateRes = await node.getStateChannel({
+      channelAddress: res.getValue(),
+    });
+    if (channelStateRes.isError) {
+      throw res.getError();
+    }
+    fromChannel = channelStateRes.getValue();
+  }
 
   // get ToChannel
   const toChannelRes = await node.getStateChannelByParticipants({
@@ -202,24 +224,24 @@ export const getChannelsForChains = async (
   console.debug("toChannel: ", toChannel);
 
   // Fallback??
-  // if (!toChannel) {
-  //   const res = await node.setup({
-  //     chainId: toChainId,
-  //     counterpartyIdentifier: routerPublicIdentifier,
-  //     timeout: "100000",
-  //   });
-  //   if (res.isError) {
-  //     throw res.getError();
-  //   }
-  //   console.log("res.getValue(): ", res.getValue());
-  //   const channelStateRes = await node.getStateChannel({
-  //     channelAddress: res.getValue(),
-  //   });
-  //   if (channelStateRes.isError) {
-  //     throw res.getError();
-  //   }
-  //   toChannel = channelStateRes.getValue();
-  // }
+  if (!toChannel) {
+    const res = await node.setup({
+      chainId: toChainId,
+      counterpartyIdentifier: routerPublicIdentifier,
+      timeout: "100000",
+    });
+    if (res.isError) {
+      throw res.getError();
+    }
+    console.log("res.getValue(): ", res.getValue());
+    const channelStateRes = await node.getStateChannel({
+      channelAddress: res.getValue(),
+    });
+    if (channelStateRes.isError) {
+      throw res.getError();
+    }
+    toChannel = channelStateRes.getValue();
+  }
   return { fromChannel, toChannel };
 };
 
@@ -387,13 +409,17 @@ async function swapInChannel(evt: EvtContainer, node: BrowserNode, channel: Full
     await handleNodeResponse(channel, toSwapWithdrawPromise)
   }
 
-  // reconcile deposit on toChain
-  const depositRes = await node.reconcileDeposit({
-    channelAddress: channel.channelAddress,
-    assetId: tokenB,
-  });
-  if (depositRes.isError) {
-    throw depositRes.getError();
+  let postSwapBalance : string = '0'
+  while (postSwapBalance === '0') {
+    // reconcile deposit on toChain
+    const depositRes = await node.reconcileDeposit({
+      channelAddress: channel.channelAddress,
+      assetId: tokenB,
+    });
+    if (depositRes.isError) {
+      throw depositRes.getError();
+    }
+    postSwapBalance = await refreshBalance(node, channel, tokenB, 'bob')
   }
 }
 
